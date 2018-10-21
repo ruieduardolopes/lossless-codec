@@ -22,7 +22,7 @@ SET (BASE_DIR ${CMAKE_SOURCE_DIR} )
 SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BASE_DIR}/../bin)
 
 ### Setting multiple directories with project's inclusions, such as include and lib directories
-INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/)
+INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/ ${BASE_DIR})
 
 ### Add a new and own-made library (wavdec)
 #ADD_LIBRARY(wavdec  ${BASE_DIR}/wavdec.cpp)

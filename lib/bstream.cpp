@@ -9,7 +9,7 @@ using namespace std;
  * @return int {@code 0} if method runs successfully; otherwise the error code.
  */
 int bstream::writeBit(uint8_t value) {
-    bstream::bits |= (value & 0x01) << bstream::position;   // this places the bit the further left (MS) as it can
+    bstream::bits |= (value & 0x01) >> bstream::position;   // this places the bit the further left (MS) as it can
     bstream::position--;                                    // passes to the next position (one step closer to LSB)
     if (bstream::position >= 1) {                           // if the position is valid, then
         return 0;                                           //     exit successfully.
