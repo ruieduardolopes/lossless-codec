@@ -328,3 +328,61 @@ int RealAudioCodec::buildOnes(int n){
     unsigned int tmp = ~0;
     return (tmp >> (32-n));
 }
+
+void RealAudioCodec::replenish(ifstream& file){
+    char tmp;
+    file.read(&tmp, sizeof(char));
+    buffer = (buffer << 8) | (tmp & 0xFF);
+}
+
+char RealAudioCodec::readNextByte(ifstream& file){
+    if (bits_in_buffer < 8){
+        replenish(file);
+    }
+    char value = (char) ((buffer >> (bits_in_buffer - 8)) & 0xFF);
+    bits_in_buffer -= 8;
+    buffer = buffer & buildOnes(bits_in_buffer);
+    return value;
+}
+
+int RealAudioCodec::readNextPredictor(ifstream& file){
+    if (bits_in_buffer < 2){
+        replenish(file);
+    }
+    int value = (buffer >> (bits_in_buffer - 2)) & 0x03;
+    bits_in_buffer -= 2;
+    buffer = buffer & buildOnes(bits_in_buffer);
+    return value;
+}
+
+int RealAudioCodec::readNextQ(ifstream& file){
+    bool decided = false;
+    int counter = 0;
+    int bit_val;
+
+    while(!decided){
+        if (bits_in_buffer < 1){
+            replenish(file);
+        }
+        bit_val = ((buffer >> (bits_in_buffer - 1)) & 1);
+        bits_in_buffer--;
+        buffer = buffer & buildOnes(bits_in_buffer);
+        if (bit_val == 1){
+            counter++;
+        }
+        else{
+            decided = true;
+        }
+    }
+    return counter;
+}
+
+int RealAudioCodec::readNextR(ifstream& file, int number_of_bits){
+    while (bits_in_buffer < number_of_bits){
+        replenish(file);
+    }
+    unsigned int value = (buffer >> (bits_in_buffer - number_of_bits)) & buildOnes(number_of_bits);
+    bits_in_buffer -= number_of_bits;
+    buffer = buffer & buildOnes(bits_in_buffer);
+    return value;
+}
