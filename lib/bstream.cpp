@@ -9,12 +9,11 @@ using namespace std;
  * @return int {@code 0} if method runs successfully; otherwise the error code.
  */
 int bstream::writeBit(uint8_t value) {
-    bstream::bits |= (value & 0x01) >> bstream::position;   // this places the bit the further left (MS) as it can
-    bstream::position--;                                    // passes to the next position (one step closer to LSB)
-    if (bstream::position >= 1) {                           // if the position is valid, then
+    bstream::bits |= (value & 0x01) << bstream::position;                                // passes to the next position (one step closer to LSB)
+    if (bstream::position-- >= 1) {                           // if the position is valid, then
         return 0;                                           //     exit successfully.
-    }                                                       // else
-    write(""+(char)bstream::bits, 1);                       // we write the completed byte (TODO)
+    }
+    write((char*)&bits, 1);                       // we write the completed byte (TODO)
     bstream::resetBitPointers(false);                       // we reset the bits to 0 and the position back to 7
     return 0;                                               // and then exit successfully.
 }
@@ -64,7 +63,7 @@ uint8_t bstream::readNBits(int num){
 
 int bstream::grantWrite() {
     if (bstream::position < 7 && bstream::position >= 0) {  // if the position does not cover a completed byte, then
-        write(""+(char)bstream::bits, 1);                   //     write a byte with the leftovers; (TODO)
+        writeNBits(0, 7-position);                          //     write a byte with the leftovers; (TODO)
     }                                                       //
     close();                                                // then close the file and exit.
 }
