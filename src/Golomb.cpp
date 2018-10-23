@@ -4,6 +4,11 @@ Golomb::Golomb(int m) {
     mValue = m;
 }
 
+Golomb::Golomb(int m, bstream file) {
+    Golomb(m);
+    Golomb::file = file;
+}
+
 int Golomb::encode(int n) {
     int quotient = mValue / n;
     int remaindr = n % mValue;
@@ -22,15 +27,20 @@ int Golomb::generate_unary_code(int quotient) {
 
 int Golomb::generate_truncated_binary_code(int remaindr) {
     if ((mValue != 0) && ((mValue & (mValue - 1)) == 0)) {
-        // code remainder in plain binary
+        file.writeNBits(remaindr, 8);                       // code remainder in plain binary
     } else {
         int bValue = (int)lb(mValue) + 1;
         if (remaindr < pow(2,bValue) - mValue) {
-            // code remainder in bValue - 1 bits
+            file.writeNBits(remaindr, bValue - 1);          // code remainder in bValue - 1 bits
         } else {
-            // code remainder + pow(2,bValue) - Golomb::mValue in plain binary using bValue bits
+            file.writeNBits(remainder + pow(2,bValue) - Golomb::mValue, bValue); // code remainder + pow(2,bValue) - Golomb::mValue in plain binary using bValue bits
         }
     }
+    return 0;
+}
+
+int Golomb::endEncode() {
+    file.grantWrite();
     return 0;
 }
 
