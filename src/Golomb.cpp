@@ -1,14 +1,14 @@
 #include "Golomb.h"
 
 Golomb::Golomb(int m) {
-    Golomb::mValue = m;
+    mValue = m;
 }
 
 int Golomb::encode(int n) {
-    int quotient = Golomb::mValue / n;
-    int remaindr = n % Golomb::mValue;
-    Golomb::generate_unary_code(quotient);
-    Golomb::generate_truncated_binary_code(remaindr);
+    int quotient = mValue / n;
+    int remaindr = n % mValue;
+    generate_unary_code(quotient);
+    generate_truncated_binary_code(remaindr);
     return 0;
 }
 
@@ -21,11 +21,11 @@ int Golomb::generate_unary_code(int quotient) {
 }
 
 int Golomb::generate_truncated_binary_code(int remaindr) {
-    if ((Golomb::mValue != 0) && ((Golomb::mValue & (Golomb::mValue - 1)) == 0)) {
+    if ((mValue != 0) && ((mValue & (mValue - 1)) == 0)) {
         // code remainder in plain binary
     } else {
-        int bValue = (int)lb(Golomb::mValue) + 1;
-        if (remaindr < pow(2,bValue) - Golomb::mValue) {
+        int bValue = (int)lb(mValue) + 1;
+        if (remaindr < pow(2,bValue) - mValue) {
             // code remainder in bValue - 1 bits
         } else {
             // code remainder + pow(2,bValue) - Golomb::mValue in plain binary using bValue bits
