@@ -24,11 +24,17 @@ SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BASE_DIR}/../bin)
 ### Setting multiple directories with project's inclusions, such as include and lib directories
 INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/ ${BASE_DIR})
 
+### Add a new and own-made library (bstream)
+ADD_LIBRARY(bstream  ${BASE_DIR}/../lib/bstream.cpp)
+
+### Add a new and own-made library (extmath)
+ADD_LIBRARY(extmath  ${BASE_DIR}/../lib/extmath.cpp)
+
 ### Add a new and own-made library (wavdec)
-#ADD_LIBRARY(wavdec  ${BASE_DIR}/wavdec.cpp)
+ADD_LIBRARY(golomb  ${BASE_DIR}/Golomb.cpp)
 
-### Marking wavvq.cpp final binary as wavvq
-#add_executable (wavvq wavvq.cpp)
+### Marking main.cpp final binary as losslesscodec
+add_executable (losslesscodec main.cpp)
 
-### Targeting libraries to further link with wavquant executable
-#target_link_libraries (wavvq sndfile bstream bitmath utils wavquant wavcb wavenc wavdec boost_program_options boost_filesystem boost_iostreams boost_system)
+### Targeting libraries to further link with losslesscodec executable
+target_link_libraries (losslesscodec bstream extmath golomb)
