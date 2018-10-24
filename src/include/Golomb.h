@@ -11,6 +11,7 @@ class Golomb {
     public: 
         Golomb(int mValue);
         int encode(int value, bstream& file);
+        int decode(int value, bstream& file);
         int endEncode(bstream& file);
     private:
         int generate_unary_code(int quotient, bstream& file);
