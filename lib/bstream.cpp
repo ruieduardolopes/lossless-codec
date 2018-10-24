@@ -1,5 +1,4 @@
 #include "bstream.h"
-#include <algorithm>
 using namespace std;
 
 /**
@@ -9,13 +8,13 @@ using namespace std;
  * @return int {@code 0} if method runs successfully; otherwise the error code.
  */
 int bstream::writeBit(uint8_t value) {
-    bstream::bits |= (value & 0x01) << bstream::position;                                // passes to the next position (one step closer to LSB)
-    if (bstream::position-- >= 1) {                           // if the position is valid, then
-        return 0;                                           //     exit successfully.
-    }
-    write((char*)&bits, 1);                       // we write the completed byte (TODO)
-    bstream::resetBitPointers(false);                       // we reset the bits to 0 and the position back to 7
-    return 0;                                               // and then exit successfully.
+    bits |= (value & 0x01) << position;             // passes to the next position (one step closer to LSB)
+    if (position-- >= 1) {                          // if the position is valid, then
+        return 0;                                   //     exit successfully.
+    }                                               //
+    write((char*)&bits, 1);                         // we write the completed byte (TODO)
+    resetBitPointers(false);                        // we reset the bits to 0 and the position back to 7
+    return 0;                                       // and then exit successfully.
 }
 
 /**
@@ -26,9 +25,8 @@ int bstream::writeBit(uint8_t value) {
  * @return int {@code 0} if method runs successfully; otherwise the error code.
  */
 int bstream::writeNBits(uint8_t value, int num){
-    for (int i = 0; i < num; i++){
-        bstream::writeBit(value&0x01);
-        value >>= 1;
+    for (int i = num-1; i >= 0; i--) {
+        writeBit((value >> i) & 0x01);
     }
     return 0;
 }
@@ -39,11 +37,11 @@ int bstream::writeNBits(uint8_t value, int num){
  * @return uint8_t the byte containing solely the wanted bit on its LSB.
  */
 uint8_t bstream::readBit() {
-    if (bstream::position < 0) {                            // if the position is already invalid, then
-        read((char*)bstream::bits, 1);                      //     we must read a new byte from the file to bits variable
-        bstream::resetBitPointers(true);                    //     and reset the position back to 7;
-    }                                                       //
-    return (bstream::bits >> bstream::position--) & 0x01;   // return the proper value.
+    if (position < 0) {                             // if the position is already invalid, then
+        read((char*)&bits, 1);                      //     we must read a new byte from the file to bits variable
+        resetBitPointers(true);                     //     and reset the position back to 7;
+    }                                               //
+    return (bits >> position--) & 0x01;             // return the proper value.
 }
 
 /**
@@ -54,24 +52,21 @@ uint8_t bstream::readBit() {
 uint8_t bstream::readNBits(int num){
     uint8_t value;
     for (int i = 0; i < num; i++){
-        value = value << 1 | bstream::readBit();
+        value = value << 1 | readBit();
     }
     return value;
-    //return (bstream::bits >> bstream::position--) & 0x01;   // return proper value.
-
 }
 
 int bstream::grantWrite() {
-    if (bstream::position < 7 && bstream::position >= 0) {  // if the position does not cover a completed byte, then
-        writeNBits(0, 7-position);                          //     write a byte with the leftovers; (TODO)
-    }                                                       //
-    close();                                                // then close the file and exit.
+    if (position < 7 && position >= 0) {    // if the position does not cover a completed byte, then
+        writeNBits(0, 7-position);          //     write a byte with the leftovers; (TODO)
+    }                                       //
+    close();                                // then close the file and exit.
 }
 
 /**
  * @brief Destroy the bstream::bstream object.
- * 
  */
 bstream::~bstream() {
-    bstream::grantWrite();
+    grantWrite();
 }
