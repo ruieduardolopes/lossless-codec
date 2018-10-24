@@ -3,18 +3,17 @@
 #include <math.h>
 
 #include "bstream.h"
+#include "extmath.h"
 
 using namespace std;
 
 class Golomb {
     public: 
         Golomb(int mValue);
-        Golomb(int mValue, bstream file);
-        int encode(int value);
-        int endEncode();
+        int encode(int value, bstream& file);
+        int endEncode(bstream& file);
     private:
-        int generate_unary_code(int quotient);
-        int generate_truncated_binary_code(int remaindr);
+        int generate_unary_code(int quotient, bstream& file);
+        int generate_truncated_binary_code(int remaindr, bstream& file);
         int mValue;
-        bstream file;
 };
