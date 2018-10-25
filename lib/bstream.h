@@ -23,7 +23,7 @@ class bstream : public fstream {
         }
     private:
         uint8_t bits = 0;
-        uint8_t position = 7;
+        int position = 7;
         int byteCount;
 };
 

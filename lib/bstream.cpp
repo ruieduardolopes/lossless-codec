@@ -41,7 +41,7 @@ uint8_t bstream::readBit() {
         read((char*)&bits, 1);                      //     we must read a new byte from the file to bits variable
         resetBitPointers(true);                     //     and reset the position back to 7;
     }                                               //
-    return (bits >> position--) & 0x01;             // return the proper value.
+    return ((bits >> position--) & 0x01);             // return the proper value.
 }
 
 /**
