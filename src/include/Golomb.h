@@ -1,3 +1,6 @@
+#ifndef GOLOMB_H
+#define GOLOMB_H
+
 #include <stdio.h>
 #include <cstdlib>
 #include <math.h>
@@ -18,3 +21,5 @@ class Golomb {
         int generate_truncated_binary_code(int remaindr, bstream& file);
         int mValue;
 };
+
+#endif
