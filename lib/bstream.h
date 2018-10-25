@@ -25,6 +25,7 @@ class bstream : public fstream {
         uint8_t bits = 0;
         int position = 7;
         int byteCount;
+        bool readWasNotUsed = true;
 };
 
 #endif  

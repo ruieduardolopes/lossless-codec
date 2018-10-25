@@ -37,6 +37,10 @@ int bstream::writeNBits(uint8_t value, int num){
  * @return uint8_t the byte containing solely the wanted bit on its LSB.
  */
 uint8_t bstream::readBit() {
+    if (readWasNotUsed) {
+        read((char*)&bits, 1);
+        readWasNotUsed = false;
+    }
     if (position < 0) {                             // if the position is already invalid, then
         read((char*)&bits, 1);                      //     we must read a new byte from the file to bits variable
         resetBitPointers(true);                     //     and reset the position back to 7;
