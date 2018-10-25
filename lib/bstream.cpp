@@ -37,7 +37,7 @@ int bstream::writeNBits(uint8_t value, int num){
  * @return uint8_t the byte containing solely the wanted bit on its LSB.
  */
 uint8_t bstream::readBit() {
-    if (readWasNotUsed) {
+    if (readWasNotUsed) {
         read((char*)&bits, 1);
         readWasNotUsed = false;
     }
