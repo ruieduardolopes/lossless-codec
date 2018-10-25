@@ -41,27 +41,28 @@ int Golomb::encode(int n, bstream& file) {
 }
 
 int Golomb::decode(bstream& file) {
-    int bValue = ceil(extmath::lb(mValue));
-    int comparisonValue = 2*bValue - mValue; // if there is any problem, check this for a possibility of applying the power, like on the encoder side
+    int bValue = ceil(extmath::lb(mValue));         
+    int comparisonValue = pow(2,bValue) - mValue; 
     int numberOfConsecutiveOnes = 0;
-    int readValue;
     while (true) {
-        readValue = file.readBit();
-        if (readValue == 1) {
+        if (file.readBit() == 1) {
             numberOfConsecutiveOnes++;
         } else {
             break;
         }
     }
     int nextInputBits = 0;
-    for (int i = 0; i != bValue; i++) {
-        nextInputBits = (nextInputBits | file.readBit()) << i;
+    int finalValue = 0;
+    for (int i = 0; i != bValue-1; i++) {
+        nextInputBits = nextInputBits << i | file.readBit();
     }
     if (nextInputBits < comparisonValue) {
-        // TODO : complete this
+        finalValue = numberOfConsecutiveOnes * mValue + nextInputBits;
     } else {
-        // TODO : complete this
+        nextInputBits = nextInputBits * 2 + file.readBit();
+        finalValue = numberOfConsecutiveOnes * mValue + nextInputBits - comparisonValue;
     }
+    return finalValue;
 }
 
 int Golomb::endEncode(bstream& file) {
