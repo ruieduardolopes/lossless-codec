@@ -33,6 +33,12 @@ int Golomb::generate_unary_code(int quotient, bstream& file) {
 }
 
 int Golomb::encode(int n, bstream& file) {
+    if (n >= 0) {
+        file.writeBit(0);
+    } else {
+        file.writeBit(1);
+        n = -n;
+    }
     int quotient = n / mValue;
     int remaindr = n % mValue;
     generate_unary_code(quotient, file);
@@ -41,6 +47,7 @@ int Golomb::encode(int n, bstream& file) {
 }
 
 int Golomb::decode(bstream& file) {
+    int valueSignal = file.readBit();
     int bValue = ceil(extmath::lb(mValue));         
     int comparisonValue = pow(2,bValue) - mValue; 
     int numberOfConsecutiveOnes = 0;
@@ -62,7 +69,7 @@ int Golomb::decode(bstream& file) {
         nextInputBits = nextInputBits * 2 + file.readBit();
         finalValue = numberOfConsecutiveOnes * mValue + nextInputBits - comparisonValue;
     }
-    return finalValue;
+    return pow(-1,valueSignal) * finalValue;
 }
 
 int Golomb::endEncode(bstream& file) {
