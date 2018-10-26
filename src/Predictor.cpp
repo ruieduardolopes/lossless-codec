@@ -1,6 +1,6 @@
 #include "Predictor.h"
 
-int Predictor::predict(int value1, int value2) {
+short Predictor::predict(short value1, short value2) {
 
     return 0;
 }

@@ -1,11 +1,16 @@
 #ifndef PREDICTOR_H
 #define PREDICTOR_H
 
+#include <vector>
+#include <sndfile.hh>
+
+using namespace std;
+
 class Predictor {
     public:
-        int predict(int value1, int value2);
+        short predict(short value1, short value2);
     private:
-        int sample;
+        vector<short> originalAudioSamples;
 };
 
 #endif
