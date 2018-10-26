@@ -22,7 +22,7 @@ SET (BASE_DIR ${CMAKE_SOURCE_DIR} )
 SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BASE_DIR}/../bin)
 
 ### Setting multiple directories with project's inclusions, such as include and lib directories
-INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/ ${BASE_DIR})
+INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/ ${BASE_DIR}/exception/ ${BASE_DIR})
 
 ### Add a new and own-made library (bstream)
 ADD_LIBRARY(bstream  ${BASE_DIR}/../lib/bstream.cpp)
