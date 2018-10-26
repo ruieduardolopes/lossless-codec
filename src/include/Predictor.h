@@ -11,7 +11,11 @@ class Predictor {
         int predict();
         int revert();
         int setSamples(vector<short> samples);
+        int setPredictedSamples(vector<short> samples);
+        int setRevertSamples(vector<short> samples);
         vector<short> getPredictedSamples();
+        vector<short> getRevertSamples();
+        vector<short> getOriginalSamples();
     private:
         vector<short> originalAudioSamples;
         vector<short> predictedAudioSamples;
