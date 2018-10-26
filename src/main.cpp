@@ -7,18 +7,20 @@ int main(void) {
     bstream file {"output", ios::out|ios::binary };
     Golomb golomb { m };
 
-    for (int i = 0; i != 16; i++) {
+    for (int i = -15; i != 16; i++) {
         golomb.encode(i, file);
     }
 
-    file.close();
+    file.grantWrite();
 
     bstream input {"output", ios::in|ios::binary};
 
-    for (int i = 0; i != 16; i++) {
+    for (int i = -15; i != 16; i++) {
         cout << "Decoding value… ";
         cout << golomb.decode(input) << endl;
     }
+
+    input.close();
 
     return 0;
 }
