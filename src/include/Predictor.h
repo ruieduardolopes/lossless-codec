@@ -8,12 +8,14 @@ using namespace std;
 
 class Predictor {
     public:
-        short predict(short value1, short value2);
+        int predict();
+        int revert();
         int setSamples(vector<short> samples);
         vector<short> getPredictedSamples();
     private:
         vector<short> originalAudioSamples;
         vector<short> predictedAudioSamples;
+        vector<short> revertedAudioSamples;
 };
 
 #endif
