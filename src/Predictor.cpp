@@ -11,7 +11,8 @@
  */
 int Predictor::predict() {
     vector<short> samples = getOriginalSamples();
-    vector<short> target_samples;
+    vector<short> target_samples(samples.size());
+
     for (int i = 0; i < samples.size()-1; i++) {
         for (int j = 1; j < samples.size(); j++) {
             target_samples.at(i) = samples.at(i) - samples.at(j); //get difference between sample in i and ihe following sample.
@@ -36,8 +37,8 @@ int Predictor::predict() {
  */
 int Predictor::revert() {
     vector<short> samples = getPredictedSamples();
-    vector<short> target_samples;
-
+    vector<short> target_samples(samples.size());
+    
     for (int i = 0; i < samples.size()-1; i++){
         for (int j = 1; j < samples.size(); j++){
             target_samples.at(i) = samples.at(i) + samples.at(j); //get sum between the pairs of the sample vector.

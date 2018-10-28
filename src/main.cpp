@@ -25,15 +25,21 @@ int main(void) {
     input.close();
 
     size_t size = 10;
-    vector<short> samples(size);  //make room for 10 integers
+    // create an empty vector
+    vector<short> samples;
 
-    //fill vector
-    for (int i =0; i < size; i++){
-        cout << "Inserting samples...";
-        samples[i] = i;
-    }
-    
-    //store samples
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(20);
+    samples.push_back(20);
+    samples.push_back(30);
+    samples.push_back(30);
+    samples.push_back(40);
+    samples.push_back(40);
+    samples.push_back(50);
+    samples.push_back(50);
+
+     //store samples
     Predictor p;
     p.setSamples(samples);
 
@@ -41,20 +47,19 @@ int main(void) {
     p.predict();
     vector<short> predict = p.getPredictedSamples();
     //show predicted samples
-    for (int i = 0; i < size; i++){
-        cout << "Predict samples...";
-        cout << predict.at(i) << endl;
+    for (int i = 0; i < predict.size(); i++){
+        cout << "Predict samples..." << endl;
+        cout << predict[i] << endl;
     }
 
     //revert function
     p.revert();
     vector<short> revert = p.getRevertSamples();
     //show revert samples
-    for (int i = 0; i < size; i++){
-        cout << "Revert samples...";
-        cout << revert.at(i) << endl;
+    for (int i = 0; i < revert.size(); i++){
+        cout << "Revert samples..." << endl;
+        cout << revert[i] << endl;
     }
-
 
     return 0;
 }
