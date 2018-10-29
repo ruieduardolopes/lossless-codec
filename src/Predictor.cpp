@@ -10,15 +10,11 @@
  * @return int 
  */
 int Predictor::predict() {
-    vector<short> samples = getOriginalSamples();
-    vector<short> target_samples(samples.size());
-
-    for (int i = 0; i < samples.size()-1; i++) {
-        for (int j = 1; j < samples.size(); j++) {
-            target_samples.at(i) = samples.at(i) - samples.at(j); //get difference between sample in i and ihe following sample.
+    for (int i = 0; i < originalAudioSamples.size()-1; i++) {
+        for (int j = 1; j < originalAudioSamples.size(); j++) {
+            predictedAudioSamples.push_back(originalAudioSamples.at(i) - originalAudioSamples.at(j)); //get difference between sample in i and ihe following sample.
         }
     }
-    setPredictedSamples(target_samples); //store target vector in predicted audio samples.
     return 0;
 }
 
@@ -35,16 +31,12 @@ int Predictor::predict() {
  * 
  * @return int 
  */
-int Predictor::revert() {
-    vector<short> samples = getPredictedSamples();
-    vector<short> target_samples(samples.size());
-    
-    for (int i = 0; i < samples.size()-1; i++){
-        for (int j = 1; j < samples.size(); j++){
-            target_samples.at(i) = samples.at(i) + samples.at(j); //get sum between the pairs of the sample vector.
+int Predictor::revert() { 
+    for (int i = 0; i < predictedAudioSamples.size()-1; i++){
+        for (int j = 1; j < predictedAudioSamples.size(); j++){
+            revertedAudioSamples.push_back(predictedAudioSamples.at(i) + predictedAudioSamples.at(j)); //get sum between the pairs of the sample vector.
         }
     }
-    setRevertSamples(target_samples); //store target vector in revert audio samples.
     return 0;
 }
 

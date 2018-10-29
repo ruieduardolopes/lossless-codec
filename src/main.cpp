@@ -1,6 +1,7 @@
+#include <vector>
+
 #include "Golomb.h"
 #include "Predictor.h"
-#include <vector>
 
 using namespace std;
 
