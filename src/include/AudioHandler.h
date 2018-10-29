@@ -5,8 +5,6 @@
 #include <vector>
 #include <sndfile.hh>
 
-#include "BadFormatException.h"
-
 using namespace std;
 
 constexpr size_t FRAMES_BUFFER_SIZE = 65536;
