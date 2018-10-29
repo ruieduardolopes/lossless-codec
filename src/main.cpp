@@ -29,37 +29,50 @@ int main(void) {
     // create an empty vector
     vector<short> samples;
 
-    samples.push_back(10);
-    samples.push_back(10);
-    samples.push_back(20);
-    samples.push_back(20);
-    samples.push_back(30);
-    samples.push_back(30);
-    samples.push_back(40);
-    samples.push_back(40);
-    samples.push_back(50);
-    samples.push_back(50);
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(20);
+    // samples.push_back(20);
+    // samples.push_back(30);
+    // samples.push_back(30);
+    // samples.push_back(40);
+    // samples.push_back(40);
+    // samples.push_back(50);
+    // samples.push_back(50);
+
+    samples.push_back(1);
+    samples.push_back(2);
+    samples.push_back(3);
+    samples.push_back(4);
+    samples.push_back(5);
+    samples.push_back(6);
+    samples.push_back(7);
+
 
      //store samples
     Predictor p;
     p.setSamples(samples);
 
+    
+
     //predict function
     p.predict();
     vector<short> predict = p.getPredictedSamples();
+    cout << "Predict samples..." << endl;
     //show predicted samples
     for (int i = 0; i < predict.size(); i++){
-        cout << "Predict samples..." << endl;
-        cout << predict[i] << endl;
+        cout << predict[i] << "  ";
     }
+
+
 
     //revert function
     p.revert();
     vector<short> revert = p.getRevertSamples();
+    cout << "\nRevert samples..." << endl;
     //show revert samples
     for (int i = 0; i < revert.size(); i++){
-        cout << "Revert samples..." << endl;
-        cout << revert[i] << endl;
+        cout << revert[i] << " ";
     }
 
     return 0;
