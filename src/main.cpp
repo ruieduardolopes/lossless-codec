@@ -1,7 +1,7 @@
 #include <vector>
 
 #include "Golomb.h"
-#include "Predictor.h"
+#include "NaivePredictor.h"
 
 using namespace std;
 
@@ -50,10 +50,8 @@ int main(void) {
 
 
      //store samples
-    Predictor p;
-    p.setSamples(samples);
-
-    
+    NaivePredictor p;
+    p.setSamples(samples);    
 
     //predict function
     p.predict();

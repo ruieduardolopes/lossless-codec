@@ -8,15 +8,27 @@ using namespace std;
 
 class Predictor {
     public:
-        int predict();
-        int revert();
-        int setSamples(vector<short> samples);
-        int setPredictedSamples(vector<short> samples);
-        int setRevertSamples(vector<short> samples);
-        vector<short> getPredictedSamples();
-        vector<short> getRevertSamples();
-        vector<short> getOriginalSamples();
-    private:
+        virtual int predict() = 0;
+        virtual int revert() = 0;
+        void setSamples(vector<short> samples) {
+            originalAudioSamples = samples;
+        }
+        void setPredictedSamples(vector<short> samples) {
+            predictedAudioSamples = samples;
+        }
+        void setRevertSamples(vector<short> samples) {
+            revertedAudioSamples = samples;
+        }
+        vector<short> getPredictedSamples() {
+            return predictedAudioSamples;
+        }
+        vector<short> getRevertSamples() {
+            return revertedAudioSamples;
+        }
+        vector<short> getOriginalSamples() {
+            return originalAudioSamples;
+        }
+    protected:
         vector<short> originalAudioSamples;
         vector<short> predictedAudioSamples;
         vector<short> revertedAudioSamples;
