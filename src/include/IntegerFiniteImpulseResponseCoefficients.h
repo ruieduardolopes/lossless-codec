@@ -72,6 +72,37 @@ namespace IntegerFiniteImpulseResponseCoefficients {
     static int e_3(vector<int>& x, int n) {
         return e_2(x, n) - e_2(x, n-1);
     }
+
+    static char x_0_sym() {
+        return 0;
+    }
+    static char x_1_sym(vector<char>& x, int n) {
+        return x[n + 1];
+    }
+    static short x_1_sym(vector<short>& x, int n) {
+        return x[n + 1];
+    }
+    static int x_1_sym(vector<int>& x, int n) {
+        return x[n + 1];
+    }
+    static char x_2_sym(vector<char>& x, int n) {
+        return 2*x[n + 1] - x[n + 2];
+    }
+    static short x_2_sym(vector<short>& x, int n) {
+        return 2*x[n + 1] - x[n + 2];
+    }
+    static int x_2_sym(vector<int>& x, int n) {
+        return 2*x[n + 1] - x[n + 2];
+    }
+    static char x_3_sym(vector<char>& x, int n) {
+        return 3*x[n + 1] - 3*x[n + 2] + x[n + 3];
+    }
+    static short x_3_sym(vector<short>& x, int n) {
+        return 3*x[n + 1] - 3*x[n + 2] + x[n + 3];
+    }
+    static int x_3_sym(vector<int>& x, int n) {
+        return 3*x[n + 1] - 3*x[n + 2] + x[n + 3];
+    }
 };
 
 #endif
