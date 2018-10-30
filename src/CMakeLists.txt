@@ -46,4 +46,4 @@ ADD_LIBRARY(naivepredictor  ${BASE_DIR}/NaivePredictor.cpp)
 add_executable (losslesscodec main.cpp)
 
 ### Targeting libraries to further link with losslesscodec executable
-target_link_libraries (losslesscodec bstream extmath golomb audiohandler naivepredictor)
+target_link_libraries (losslesscodec sndfile bstream extmath golomb audiohandler naivepredictor)
