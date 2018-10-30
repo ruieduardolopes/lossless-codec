@@ -42,8 +42,11 @@ ADD_LIBRARY(audiohandler  ${BASE_DIR}/AudioHandler.cpp)
 ### Add a new and own-made library (wavdec)
 ADD_LIBRARY(naivepredictor  ${BASE_DIR}/NaivePredictor.cpp)
 
+### Add a new and own-made library (wavdec)
+ADD_LIBRARY(advancedpredictor  ${BASE_DIR}/AdvancedPredictor.cpp)
+
 ### Marking main.cpp final binary as losslesscodec
 add_executable (losslesscodec main.cpp)
 
 ### Targeting libraries to further link with losslesscodec executable
-target_link_libraries (losslesscodec sndfile bstream extmath golomb audiohandler naivepredictor)
+target_link_libraries (losslesscodec sndfile bstream extmath golomb audiohandler naivepredictor advancedpredictor)
