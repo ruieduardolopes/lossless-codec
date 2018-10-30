@@ -3,31 +3,6 @@
 #include <iostream>
 
 int AdvancedPredictor::predict() {
-    evaluatePredictions();
-    return 0;
-}
-
-int AdvancedPredictor::revert() {
-
-    return 0;
-}
-
-vector<char> AdvancedPredictor::getUsedPredictorVector() {
-    return usedPredictor;
-}
-
-char AdvancedPredictor::getUsedPredictorOn(int frame) {
-    return usedPredictor[frame];
-}
-
-/**
- * @brief 
- * 
- * Let's consider that originalAudioSamples is a frame.
- * 
- * @return int 
- */
-int AdvancedPredictor::evaluatePredictions() {
     resetVectors();
     // Fill results from predictors
     for (int n = 0; n != originalAudioSamples.size(); n++) {
@@ -59,59 +34,12 @@ int AdvancedPredictor::evaluatePredictions() {
         }
     }
     
-    // cout << "\n\n1:  " << endl;
-    // for (auto element : resultsPredictor1) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-    // cout << "2:  " << endl;
-    // for (auto element : resultsPredictor2) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-    // cout << "3:  " << endl;
-    // for (auto element : resultsPredictor3) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-    // cout << "4:  " << endl;
-    // for (auto element : resultsPredictor4) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-
-    // cout << "\n\n1:  " << endl;
-    // for (auto element : deviationPredictor1) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-    // cout << "2:  " << endl;
-    // for (auto element : deviationPredictor2) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-    // cout << "3:  " << endl;
-    // for (auto element : deviationPredictor3) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-    // cout << "4:  " << endl;
-    // for (auto element : deviationPredictor4) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
-
     // Evaluate the smaller deviation, to choose the predictor
     vector<double> meanDeviations;
     meanDeviations.push_back(extmath::mean(deviationPredictor1));
     meanDeviations.push_back(extmath::mean(deviationPredictor2));
     meanDeviations.push_back(extmath::mean(deviationPredictor3));
     meanDeviations.push_back(extmath::mean(deviationPredictor4));
-    // cout << "\n\nDeviations:" << endl;
-    // for (auto element : meanDeviations) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl << endl;
     char predictorIndex = extmath::minIndex(meanDeviations);
     usedPredictor.push_back(predictorIndex);
 
@@ -133,8 +61,20 @@ int AdvancedPredictor::evaluatePredictions() {
             break; // TODO : handle this case
     }
 
+    return 0;
+}
+
+int AdvancedPredictor::revert() {
 
     return 0;
+}
+
+vector<char> AdvancedPredictor::getUsedPredictorVector() {
+    return usedPredictor;
+}
+
+char AdvancedPredictor::getUsedPredictorOn(int frame) {
+    return usedPredictor[frame];
 }
 
 int AdvancedPredictor::resetVectors() {
