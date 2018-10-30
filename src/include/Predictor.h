@@ -19,6 +19,9 @@ class Predictor {
         void setRevertSamples(vector<short> samples) {
             revertedAudioSamples = samples;
         }
+        void setFramesBufferSize(int size) {
+            framesBufferSize = size;
+        }
         vector<short> getPredictedSamples() {
             return predictedAudioSamples;
         }
@@ -28,10 +31,14 @@ class Predictor {
         vector<short> getOriginalSamples() {
             return originalAudioSamples;
         }
+        int getFramesBufferSize() {
+            return framesBufferSize;
+        }
     protected:
         vector<short> originalAudioSamples;
         vector<short> predictedAudioSamples;
         vector<short> revertedAudioSamples;
+        int framesBufferSize;
 };
 
 #endif
