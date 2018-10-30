@@ -9,7 +9,11 @@ int AdvancedPredictor::predict() {
         resultsPredictor1.push_back(x_0());
         deviationPredictor1.push_back(e_0(originalAudioSamples, n));
 
-        if (n == 0) {
+        // if (n == 0) {
+        //     //resultsPredictor2.push_back(originalAudioSamples[n]);
+        //     //deviationPredictor2.push_back(0);
+        // } else 
+        if (n == originalAudioSamples.size()-1) {
             resultsPredictor2.push_back(originalAudioSamples[n]);
             deviationPredictor2.push_back(0);
         } else {
@@ -65,6 +69,42 @@ int AdvancedPredictor::predict() {
 }
 
 int AdvancedPredictor::revert() {
+    resetVectors();
+    int currentPredictor;
+    for (int n = 0; n != predictedAudioSamples.size(); n++) {
+        if (n % framesBufferSize == 0) {
+            currentPredictor = usedPredictor[n/framesBufferSize];
+            cout << currentPredictor << endl;
+        }
+        switch (currentPredictor) {
+            case 0: 
+                revertedAudioSamples.push_back(x_0_sym());
+                break;
+            case 1:
+                if (n == predictedAudioSamples.size()-1) {
+                    revertedAudioSamples.push_back(predictedAudioSamples[n]);
+                } else {
+                    revertedAudioSamples.push_back(x_1_sym(predictedAudioSamples, n));
+                }
+                break;
+            case 2:
+                if (n >= predictedAudioSamples.size()-2) {
+                    revertedAudioSamples.push_back(predictedAudioSamples[n]);
+                } else {
+                    revertedAudioSamples.push_back(x_2_sym(predictedAudioSamples, n));
+                }
+                break;
+            case 3:
+                if (n >= predictedAudioSamples.size()-3) {
+                    revertedAudioSamples.push_back(predictedAudioSamples[n]);
+                } else {
+                    revertedAudioSamples.push_back(x_3_sym(predictedAudioSamples, n));
+                }
+                break;
+            default:
+                break; // TODO : handle this case
+        }  
+    }
 
     return 0;
 }
