@@ -20,7 +20,7 @@ int AudioHandler::loadAudioSpecs() {
 
 int AudioHandler::loadAll() {
     size_t nFrames;
-    if (format & SF_FORMAT_SUBMASK == SF_FORMAT_PCM_S8) {
+    if ((format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_S8) {
         vector<char> tmp(FRAMES_BUFFER_SIZE*channels);
         while ((nFrames = audio.readf((short*)tmp.data(), FRAMES_BUFFER_SIZE))) {
             for (auto sample : tmp) {
@@ -28,15 +28,16 @@ int AudioHandler::loadAll() {
             }
             tmp.resize(nFrames * channels);
         }
-    } else if (format & SF_FORMAT_SUBMASK == SF_FORMAT_PCM_16) {
+    } else if ((format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_16) {
         vector<short> tmp(FRAMES_BUFFER_SIZE*channels);
         while ((nFrames = audio.readf(tmp.data(), FRAMES_BUFFER_SIZE))) {
+            cout << nFrames << endl;
             for (auto sample : tmp) {
                 samples_16.push_back(sample);
             }
             tmp.resize(nFrames * channels);
         }
-    } else if (format & SF_FORMAT_SUBMASK == SF_FORMAT_PCM_32) {
+    } else if ((format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_32) {
         vector<int> tmp(FRAMES_BUFFER_SIZE*channels);
         while ((nFrames = audio.readf(tmp.data(), FRAMES_BUFFER_SIZE))) {
             for (auto sample : tmp) {
@@ -54,7 +55,7 @@ int AudioHandler::loadBlock() {
     }
     size_t nFrames;
     int count = 0;
-    if (format & SF_FORMAT_SUBMASK == SF_FORMAT_PCM_S8) {
+    if ((format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_S8) {
         samples_8.clear();
         vector<char> tmp(FRAMES_BUFFER_SIZE*channels);
         while ((nFrames = audio.readf((short*)tmp.data(), FRAMES_BUFFER_SIZE))) {
@@ -66,7 +67,7 @@ int AudioHandler::loadBlock() {
                 return 0;
             }
         }
-    } else if (format & SF_FORMAT_SUBMASK == SF_FORMAT_PCM_16) {
+    } else if ((format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_16) {
         samples_16.clear();
         vector<short> tmp(FRAMES_BUFFER_SIZE*channels);
         while ((nFrames = audio.readf(tmp.data(), FRAMES_BUFFER_SIZE))) {
@@ -78,7 +79,7 @@ int AudioHandler::loadBlock() {
                 return 0;
             }
         }
-    } else if (format & SF_FORMAT_SUBMASK == SF_FORMAT_PCM_32) {
+    } else if ((format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_32) {
         samples_32.clear();
         vector<int> tmp(FRAMES_BUFFER_SIZE*channels);
         while ((nFrames = audio.readf(tmp.data(), FRAMES_BUFFER_SIZE))) {
