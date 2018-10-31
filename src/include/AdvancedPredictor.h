@@ -17,6 +17,7 @@ class AdvancedPredictor : public Predictor {
     private: 
         int resetVectors();
         vector<char> usedPredictor;
+        vector<short> lastThreeSamples = vector<short>(3,0);
         vector<short> resultsPredictor1;
         vector<short> resultsPredictor2;
         vector<short> resultsPredictor3;
