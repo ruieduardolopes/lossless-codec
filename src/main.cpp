@@ -12,14 +12,18 @@ int main(void) {
     vector<short> samples;
 
     predictor.setFramesBufferSize(8);
-    // samples.push_back(8);
-    // samples.push_back(2);
-    // samples.push_back(6);
-    // samples.push_back(4);
-    // samples.push_back(5);
-    // samples.push_back(3);
-    // samples.push_back(7);
-    // samples.push_back(1);
+    samples.push_back(8);
+    samples.push_back(2);
+    samples.push_back(6);
+    samples.push_back(4);
+    samples.push_back(5);
+    samples.push_back(3);
+    samples.push_back(7);
+    samples.push_back(1);
+    predictor.setSamples(samples);
+    predictor.predict();
+
+    samples.clear();
 
     samples.push_back(1);
     samples.push_back(2);
@@ -29,9 +33,18 @@ int main(void) {
     samples.push_back(6);
     samples.push_back(7);
     samples.push_back(8);
-
     predictor.setSamples(samples);
     predictor.predict();
+
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(10);
+    // samples.push_back(10); 
+
 
     cout << "Samples:" << endl;
     for (auto element : samples) {
@@ -39,14 +52,6 @@ int main(void) {
     }
 
     // samples.clear();
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(70);
-    // samples.push_back(70);
-    // samples.push_back(70);
-    // samples.push_back(70); 
 
     // predictor.setSamples(samples);
     // predictor.predict();
