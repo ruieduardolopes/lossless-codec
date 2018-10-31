@@ -82,7 +82,7 @@ int AdvancedPredictor::predict() {
             predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor3.begin()+2, resultsPredictor3.end());
             break;
         case 3:
-            predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor4.begin()+3, resultsPredictor4.end());
+            predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor4.begin()+4, resultsPredictor4.end());
             break;
         default:
             break; // TODO : handle this case
