@@ -21,11 +21,21 @@ int main(void) {
         }
         nFrames += frames;
         samples = audio.getSamples_16();
+        // cout << "Smaples..." << endl;
+        // for (int i = 0; i < samples.size(); i++) {
+        //     cout << samples[i] << endl;
+        // }
         predictor.setSamples(samples);
         predictor.predict();
     }
     predictor.revert();
     samples = predictor.getRevertSamples();
+    cout << "Samples..." << endl;
+    for (int i = 0; i < samples.size(); i++){
+        cout << samples[i] << endl;
+    }
+    nFrames = samples.size();
+    cout << "Number of frames: " << nFrames;
     audio.save("file.compressed.wav", samples, nFrames);
 
     return 0;
