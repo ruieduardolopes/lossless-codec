@@ -59,7 +59,7 @@ int AdvancedPredictor::predict() {
     // cout << endl;
 
     // Update the last three samples
-    lastThreeSamples = vector<short>(samples.begin()+(samples.size()-3), samples.end());
+    lastThreeSamples = vector<short>(samples.begin()+(samples.size()-4), samples.end()-1);
     
     // Evaluate the smaller deviation, to choose the predictor
     vector<double> meanDeviations;
