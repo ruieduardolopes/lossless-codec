@@ -18,6 +18,7 @@ class AudioHandler {
         vector<char> getSamples_8();
         vector<short> getSamples_16();
         vector<int> getSamples_32();
+        int save(std::string filename, vector<short>& samples, int numberOfFrames);
     private:
         int loadAudioSpecs();
         int blockLength;

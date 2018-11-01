@@ -2,6 +2,7 @@
 #define INTEGERFINITEIMPULSERESPONSECOEFFICIENTS_H
 
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -88,6 +89,7 @@ namespace IntegerFiniteImpulseResponseCoefficients {
         return (d[(i+3) - 1] + p[i]) / 2;
     }
     static short x_2_sym(vector<short>& p, vector<short>& d, int i) {
+        cout << "d[i] = (d[i-1] + p[i]) / 2 = " << (d[(i+3) - 1]) << " + " << p[i] << " / 2 = " << ((d[(i+3) - 1] + p[i]) / 2) << endl;
         return (d[(i+3) - 1] + p[i]) / 2;
     }
     static int x_2_sym(vector<int>& p, vector<int>& d, int i) {

@@ -51,7 +51,7 @@ int AudioHandler::loadAll() {
 
 int AudioHandler::loadBlock() {
     if (blockLength == 0) {
-        return 1; // TODO : handle this error
+        return -1; // TODO : handle this error
     }
     size_t nFrames;
     int count = 0;
@@ -93,7 +93,7 @@ int AudioHandler::loadBlock() {
         }
     }
     if (nFrames == 0) {
-        return 2; // TODO : handle this error
+        return -2; // TODO : handle this error
     }
     return 0;
 }
@@ -117,4 +117,15 @@ vector<int> AudioHandler::getSamples_32() {
         throw "Invalid format";
     }
     return samples_32;
+}
+
+int AudioHandler::save(std::string filename, vector<short>& samples, int numberOfFrames) {
+	if (samples.empty()) {																	// if there are no decoded samples, then
+		return 1; 																								//     do nothing and exit with error 1 (TODO)
+	} 																											//
+	SndfileHandle file { filename, SFM_WRITE, format, channels, samplerate };  // create audio file with precise characteristics
+	// file.writeRaw(Quantizer::decodedSamples.data(), Quantizer::decodedSamples.size()*sizeof(short));								// write data into the WAV file
+	cout << numberOfFrames << endl;
+    file.writef(samples.data(), numberOfFrames);								// write data into the WAV file
+	return 0;																									// exit successfully
 }
