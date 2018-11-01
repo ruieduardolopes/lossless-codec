@@ -4,6 +4,7 @@
 
 int AdvancedPredictor::predict() {
     resetVectors();
+    verifyVectorCompleteness();
     // Fill results from predictors
     vector<short> samples = originalAudioSamples;
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
@@ -148,5 +149,13 @@ int AdvancedPredictor::resetVectors() {
     deviationPredictor2.clear();
     deviationPredictor3.clear();
     deviationPredictor4.clear();
+    return 0;
+}
+
+int AdvancedPredictor::verifyVectorCompleteness() {
+    while (originalAudioSamples.size() % framesBufferSize != 0) {
+        originalAudioSamples.push_back(0);
+    }
+
     return 0;
 }

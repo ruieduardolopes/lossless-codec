@@ -16,6 +16,7 @@ class AdvancedPredictor : public Predictor {
         char getUsedPredictorOn(int frame);
     private: 
         int resetVectors();
+        int verifyVectorCompleteness();
         vector<char> usedPredictor;
         vector<short> lastThreeSamples = vector<short>(3,0);
         vector<short> resultsPredictor1;
