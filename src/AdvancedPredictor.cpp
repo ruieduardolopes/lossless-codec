@@ -9,10 +9,10 @@ int AdvancedPredictor::predict() {
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
     samples.push_back(0);
 
-    // for (auto element : samples) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl;
+    for (auto element : samples) {
+        cout << element << "  ";
+    }
+    cout << endl;
 
     for (int n = 0; n != samples.size(); n++) {
         if (n > 3) {
@@ -34,29 +34,29 @@ int AdvancedPredictor::predict() {
         deviationPredictor4.push_back(e_3(samples, n));        
     }
 
-    // cout << "Predictor 0: ";
-    // for (auto element : resultsPredictor1) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl;
+    cout << "Predictor 0: ";
+    for (auto element : resultsPredictor1) {
+        cout << element << "  ";
+    }
+    cout << endl;
 
-    // cout << "Predictor 1: ";
-    // for (auto element : resultsPredictor2) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl;
+    cout << "Predictor 1: ";
+    for (auto element : resultsPredictor2) {
+        cout << element << "  ";
+    }
+    cout << endl;
 
-    // cout << "Predictor 2: ";
-    // for (auto element : resultsPredictor3) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl;
+    cout << "Predictor 2: ";
+    for (auto element : resultsPredictor3) {
+        cout << element << "  ";
+    }
+    cout << endl;
 
-    // cout << "Predictor 3: ";
-    // for (auto element : resultsPredictor4) {
-    //     cout << element << "  ";
-    // }
-    // cout << endl;
+    cout << "Predictor 3: ";
+    for (auto element : resultsPredictor4) {
+        cout << element << "  ";
+    }
+    cout << endl;
 
     // Update the last three samples
     lastThreeSamples = vector<short>(samples.begin()+(samples.size()-4), samples.end()-1);
@@ -98,8 +98,9 @@ int AdvancedPredictor::revert() {
     revertedAudioSamples.push_back(0);
     revertedAudioSamples.push_back(0);
     for (int n = 0; n != predictedAudioSamples.size(); n++) {
-        if (n % (framesBufferSize+3) == 0) {
-            currentPredictor = usedPredictor[n/(framesBufferSize+3)];
+        // cout << (n % (framesBufferSize+3)) << endl;
+        if (n % (framesBufferSize) == 0) {
+            currentPredictor = usedPredictor[n/(framesBufferSize)];
             cout << "Decoding with predictor number " << currentPredictor << endl;
         }
         switch (currentPredictor) {
@@ -119,6 +120,13 @@ int AdvancedPredictor::revert() {
                 break; // TODO : handle this case
         }  
     }
+
+    cout << "Reverted: ";
+    for (auto element : revertedAudioSamples) {
+        cout << element << "  ";
+    }
+    cout << endl;
+
     revertedAudioSamples.erase(revertedAudioSamples.begin(), revertedAudioSamples.begin()+3);
     return 0;
 }
