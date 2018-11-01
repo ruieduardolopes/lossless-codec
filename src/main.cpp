@@ -36,15 +36,47 @@ int main(void) {
     predictor.setSamples(samples);
     predictor.predict();
 
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10);
-    // samples.push_back(10); 
+    samples.clear();
 
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(10);
+    samples.push_back(10); 
+    predictor.setSamples(samples);
+    predictor.predict();
+
+    samples.clear();
+
+    samples.push_back(0);
+    samples.push_back(0);
+    samples.push_back(0);
+    samples.push_back(0);
+    samples.push_back(0);
+    samples.push_back(0);
+    samples.push_back(0);
+    samples.push_back(0); 
+    predictor.setSamples(samples);
+    predictor.predict();
+
+    samples.clear();
+    samples.push_back(40);
+    samples.push_back(40);
+    samples.push_back(40);
+    samples.push_back(40);
+    predictor.setSamples(samples);
+    predictor.predict();
+    
+    samples.clear();
+    samples.push_back(40);
+    samples.push_back(40);
+    samples.push_back(40);
+    samples.push_back(40);
+    predictor.setSamples(samples);
+    predictor.predict();
 
     cout << "Samples:" << endl;
     for (auto element : samples) {
