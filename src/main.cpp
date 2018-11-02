@@ -25,17 +25,20 @@ int main(void) {
         // for (int i = 0; i < samples.size(); i++) {
         //     cout << samples[i] << endl;
         // }
+        cout << "Number of frames(Original): " << samples.size() << endl;
         predictor.setSamples(samples);
         predictor.predict();
     }
+    nFrames = samples.size();
+    cout << "Number of frames(Predict): " << nFrames << endl;
     predictor.revert();
     samples = predictor.getRevertSamples();
-    cout << "Samples..." << endl;
-    for (int i = 0; i < samples.size(); i++){
-        cout << samples[i] << endl;
-    }
+    // cout << "Samples..." << endl;
+    // for (int i = 0; i < samples.size(); i++){
+    //     cout << samples[i] << endl;
+    // }
     nFrames = samples.size();
-    cout << "Number of frames: " << nFrames;
+    cout << "Number of frames(Revert): " << nFrames << endl;
     audio.save("file.compressed.wav", samples, nFrames);
 
     return 0;
