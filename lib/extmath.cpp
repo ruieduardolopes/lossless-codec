@@ -1,7 +1,5 @@
 #include "extmath.h"
 
-#include <iostream>
-
 double extmath::lb(int x) {
     return log10(x) / log10(2);
 }
