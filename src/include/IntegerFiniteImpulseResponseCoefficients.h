@@ -32,6 +32,8 @@ namespace IntegerFiniteImpulseResponseCoefficients {
         return 3*x[n - 1] - 3*x[n - 2] + x[n - 3];
     }
     static short x_3(vector<short>& x, int n) {
+        // cout << "x_3[i] = 3*x[n - 1] - 3*x[n - 2] + x[n - 3] = " << (3*x[n - 1]) << " - " << (3*x[n - 2]) << " + " << (x[n - 3]) << " = " << (3*x[n - 1] - 3*x[n - 2] + x[n - 3]) << endl;
+        // exit(0);
         return 3*x[n - 1] - 3*x[n - 2] + x[n - 3];
     }
     static int x_3(vector<int>& x, int n) {
@@ -89,7 +91,7 @@ namespace IntegerFiniteImpulseResponseCoefficients {
         return (d[(i+3) - 1] + p[i]) / 2;
     }
     static short x_2_sym(vector<short>& p, vector<short>& d, int i) {
-        cout << "d[i] = (d[i-1] + p[i]) / 2 = " << (d[(i+3) - 1]) << " + " << p[i] << " / 2 = " << ((d[(i+3) - 1] + p[i]) / 2) << endl;
+        //cout << "d[i] = (d[i-1] + p[i]) / 2 = " << (d[(i+3) - 1]) << " + " << p[i] << " / 2 = " << ((d[(i+3) - 1] + p[i]) / 2) << endl;
         return (d[(i+3) - 1] + p[i]) / 2;
     }
     static int x_2_sym(vector<int>& p, vector<int>& d, int i) {
@@ -99,6 +101,8 @@ namespace IntegerFiniteImpulseResponseCoefficients {
         return (p[i] + 3*d[(i+3) - 1] - d[(i+3) - 2]) / 3;
     }
     static short x_3_sym(vector<short>& p, vector<short>& d, int i) {
+        // cout << "d[i] = (p[i] + 3*d[i - 1] - d[i - 2]) / 3 = " << p[i] << " + " << (3*d[(i+3) - 1]) << " - " << (d[(i+3) - 2]) << " / 3 = " << ((p[i] + 3*d[(i+3) - 1] - d[(i+3) - 2]) / 3) << endl;
+        // exit(0);
         return (p[i] + 3*d[(i+3) - 1] - d[(i+3) - 2]) / 3;
     }
     static int x_3_sym(vector<int>& p, vector<int>& d, int i) {

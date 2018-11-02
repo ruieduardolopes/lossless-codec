@@ -99,8 +99,8 @@ int AdvancedPredictor::revert() {
     revertedAudioSamples.push_back(0);
     revertedAudioSamples.push_back(0);
     for (int n = 0; n != predictedAudioSamples.size(); n++) {
-        // cout << (n % (framesBufferSize+3)) << endl;
-        if (n % (framesBufferSize) == 0) {
+        // cout << (n / (framesBufferSize)) << endl;
+        if ((n % (framesBufferSize)) == 0) {
             currentPredictor = usedPredictor[n/(framesBufferSize)];
             // cout << "Decoding with predictor number " << currentPredictor << endl;
         }
@@ -121,7 +121,7 @@ int AdvancedPredictor::revert() {
                 break; // TODO : handle this case
         }  
     }
-
+    // cout << usedPredictor.size() << " is the size of the predictions" << endl;
     // cout << "Reverted: ";
     // for (auto element : revertedAudioSamples) {
     //     cout << element << "  ";
