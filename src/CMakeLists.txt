@@ -37,6 +37,9 @@ ADD_LIBRARY(golomb  ${BASE_DIR}/Golomb.cpp)
 target_link_libraries (golomb bstream extmath)
 
 ### Add a new and own-made library (wavdec)
+ADD_LIBRARY(quantizer  ${BASE_DIR}/Quantizer.cpp)
+
+### Add a new and own-made library (wavdec)
 ADD_LIBRARY(audiohandler  ${BASE_DIR}/AudioHandler.cpp)
 
 ### Add a new and own-made library (wavdec)
@@ -49,4 +52,4 @@ ADD_LIBRARY(advancedpredictor  ${BASE_DIR}/AdvancedPredictor.cpp)
 add_executable (losslesscodec main.cpp)
 
 ### Targeting libraries to further link with losslesscodec executable
-target_link_libraries (losslesscodec sndfile bstream extmath golomb audiohandler naivepredictor advancedpredictor)
+target_link_libraries (losslesscodec sndfile bstream extmath golomb quantizer audiohandler naivepredictor advancedpredictor)
