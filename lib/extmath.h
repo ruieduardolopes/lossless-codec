@@ -4,6 +4,7 @@
 #include <climits>
 #include <math.h>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
