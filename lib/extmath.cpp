@@ -17,8 +17,8 @@ double extmath::mean(vector<short> set) {
 short extmath::min(vector<short> set) {
     short minimum = INT16_MAX;
     for (auto element : set) {
-        if (element < minimum) {
-            minimum = element;
+        if (abs(element) < minimum) {
+            minimum = abs(element);
         }
     }
     return minimum;
@@ -28,8 +28,8 @@ short extmath::minIndex(vector<double> set) {
     short minimum = INT16_MAX;
     short minimumIndex;
     for (int index = 0; index != set.size(); index++) {
-        if (set[index] < minimum) {
-            minimum = set[index];
+        if (abs(set[index]) < minimum) {
+            minimum = abs(set[index]);
             minimumIndex = index;
         }
     }
