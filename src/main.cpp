@@ -533,8 +533,8 @@ int main(void) {
             predictor.predict();
         }
     }
-    nFrames = samples.size();
-    cout << "Number of frames(Predict): " << nFrames << endl;
+    //nFrames = samples.size();
+    // cout << "Number of frames(Predict): " << nFrames << endl;
     predictor.revert();
     samples = predictor.getRevertSamples();
     // cout << "Samples: ";
