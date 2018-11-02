@@ -33,7 +33,6 @@ int main(void) {
     predictor.revert();
     samples = predictor.getRevertSamples();
     audio.save("file.compressed.wav", samples, nFrames);
-
     return 0;
 }
 
