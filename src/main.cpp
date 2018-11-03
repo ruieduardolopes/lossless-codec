@@ -10,7 +10,7 @@ using namespace std;
 constexpr int BLOCK_SIZE = 65536;
 
 int main(void) {
-    AudioHandler audio = AudioHandler("file.wav", 1);
+    AudioHandler audio = AudioHandler("sample07.wav", 1);
     AdvancedPredictor predictor = AdvancedPredictor();
     vector<short> samples;
     predictor.setFramesBufferSize(BLOCK_SIZE);
@@ -33,7 +33,7 @@ int main(void) {
     vector<short> predictedSamples = predictor.getPredictedSamples();
     cout << "length: " << predictedSamples.size() << endl;
     bstream output = bstream{ "output.wavz", ios::out|ios::binary };
-    Golomb golomb = Golomb(8);
+    Golomb golomb = Golomb(1024);
     for (auto sample : predictedSamples) {
         // cout << sample << ", ";
         golomb.encode(sample, output);
