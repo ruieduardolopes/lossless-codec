@@ -7,20 +7,16 @@ Golomb::Golomb(int m) {
 }
 
 int Golomb::generate_truncated_binary_code(int remaindr, bstream& file) {
-    if ((mValue != 0) && ((mValue & (mValue - 1)) == 0)) {
-        file.writeNBits(remaindr, 8);                       // code remainder in plain binary
+    int bValue = ceil(extmath::lb(mValue));
+    int tValue = 2*bValue - mValue;
+    if (remaindr < tValue) {
+        file.writeNBits(remaindr, bValue-1);
         return remaindr;
     } else {
-        int bValue = ceil(extmath::lb(mValue));
-        if (remaindr < pow(2,bValue) - mValue) {
-            file.writeNBits(remaindr, bValue - 1);          // code remainder in bValue - 1 bits
-            return remaindr;
-        } else {
-            file.writeNBits(remaindr + pow(2,bValue) - mValue, bValue); // code remainder + pow(2,bValue) - Golomb::mValue in plain binary using bValue bits
-            return remaindr + pow(2,bValue) - mValue;
-        }
+        remaindr = remaindr + tValue;
+        file.writeNBits(remaindr, bValue);
+        return remaindr;
     }
-    return 0;
 }
 
 int Golomb::generate_unary_code(int quotient, bstream& file) {
@@ -28,10 +24,12 @@ int Golomb::generate_unary_code(int quotient, bstream& file) {
     for (int i = 0; i != quotient; i++) { 
         unaryCode = (unaryCode + 1) << 1; 
     }
+    //cout << "Unary code is " << bitset<8>(unaryCode) << " for quotient " << quotient << endl;
     file.writeNBits(unaryCode, quotient+1);
+    //cout << "ended writing unary code" << endl;
     return unaryCode;
 }
-
+// 0 1110
 int Golomb::encode(int n, bstream& file) {
     if (n >= 0) {
         file.writeBit(0);
@@ -48,8 +46,8 @@ int Golomb::encode(int n, bstream& file) {
 
 int Golomb::decode(bstream& file) {
     int valueSignal = file.readBit();
-    int bValue = ceil(extmath::lb(mValue));         
-    int comparisonValue = pow(2,bValue) - mValue; 
+    int bValue = (int)ceil(extmath::lb(mValue));
+    int tValue = 2*bValue - mValue;
     int numberOfConsecutiveOnes = 0;
     while (true) {
         if (file.readBit() == 1) {
@@ -59,17 +57,16 @@ int Golomb::decode(bstream& file) {
         }
     }
     int nextInputBits = 0;
-    int finalValue = 0;
     for (int i = 0; i != bValue-1; i++) {
-        nextInputBits = nextInputBits << i | file.readBit();
+        nextInputBits = (nextInputBits << i) | file.readBit();
     }
-    if (nextInputBits < comparisonValue) {
-        finalValue = numberOfConsecutiveOnes * mValue + nextInputBits;
+    if (nextInputBits < tValue) {
+        numberOfConsecutiveOnes = numberOfConsecutiveOnes * mValue + nextInputBits;
     } else {
         nextInputBits = nextInputBits * 2 + file.readBit();
-        finalValue = numberOfConsecutiveOnes * mValue + nextInputBits - comparisonValue;
+        numberOfConsecutiveOnes = numberOfConsecutiveOnes * mValue + nextInputBits - tValue;
     }
-    return pow(-1,valueSignal) * finalValue;
+    return (int)pow(-1,valueSignal) * numberOfConsecutiveOnes;
 }
 
 int Golomb::endEncode(bstream& file) {
