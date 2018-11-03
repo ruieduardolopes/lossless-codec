@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <bitset>
 
 using std::fstream;
 

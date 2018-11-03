@@ -9,10 +9,12 @@ using namespace std;
  */
 int bstream::writeBit(uint8_t value) {
     bits |= (value & 0x01) << position;             // passes to the next position (one step closer to LSB)
+    //cout << (value & 0x01) << endl;
     if (position-- >= 1) {                          // if the position is valid, then
         return 0;                                   //     exit successfully.
     }                                               //
     write((char*)&bits, 1);                         // we write the completed byte (TODO)
+    //cout << "written bits on file: " << bitset<8>(bits) << endl;
     resetBitPointers(false);                        // we reset the bits to 0 and the position back to 7
     return 0;                                       // and then exit successfully.
 }
@@ -43,8 +45,10 @@ uint8_t bstream::readBit() {
     }
     if (position < 0) {                             // if the position is already invalid, then
         read((char*)&bits, 1);                      //     we must read a new byte from the file to bits variable
+        //cout << "read bits from file: " << bitset<8>(bits) << endl;
         resetBitPointers(true);                     //     and reset the position back to 7;
     }                                               //
+    //cout << ((bits >> position) & 0x01) << " with bits " << bitset<8>(bits) << " and position " << position << endl;
     return ((bits >> position--) & 0x01);             // return the proper value.
 }
 
@@ -62,8 +66,8 @@ uint8_t bstream::readNBits(int num){
 }
 
 int bstream::grantWrite() {
-    if (position < 7 && position >= 0) {    // if the position does not cover a completed byte, then
-        writeNBits(0, 7-position);          //     write a byte with the leftovers; (TODO)
+    for (int i = 0; position < 7 && position >= 0; i++) {    // if the position does not cover a completed byte, then
+        writeBit(0);          //     write a byte with the leftovers; (TODO)
     }                                       //
     close();                                // then close the file and exit.
 }
@@ -72,5 +76,6 @@ int bstream::grantWrite() {
  * @brief Destroy the bstream::bstream object.
  */
 bstream::~bstream() {
-    grantWrite();
+    //grantWrite();
+    close();
 }
