@@ -14,6 +14,9 @@ class AdvancedPredictor : public Predictor {
         int revert();
         vector<char> getUsedPredictorVector();
         char getUsedPredictorOn(int frame);
+        void setUsedPredictor(vector<char>& used);
+        vector<int> getResiduals();
+        void setResiduals(vector<int>& deviations);
     private: 
         int resetVectors();
         int verifyVectorCompleteness();
@@ -27,6 +30,7 @@ class AdvancedPredictor : public Predictor {
         vector<short> deviationPredictor2;
         vector<short> deviationPredictor3;
         vector<short> deviationPredictor4;
+        vector<int> residuals;
 };
 
 #endif

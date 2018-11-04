@@ -14,6 +14,12 @@ namespace IntegerFiniteImpulseResponseCoefficients {
         return x[n - 1];
     }
     static short x_1(vector<short>& x, int n) {
+        // cout << "\nx[n - 1] = " << x[n-1] << " = " << (x[n - 1]) << endl;
+        // cout << "on {";
+        // for (auto sample : x) {
+        //     cout << sample << ", ";
+        // }
+        // cout << "}\n";
         return x[n - 1];
     }
     static int x_1(vector<int>& x, int n) {
@@ -23,6 +29,12 @@ namespace IntegerFiniteImpulseResponseCoefficients {
         return 2*x[n - 1] - x[n - 2];
     }
     static short x_2(vector<short>& x, int n) {
+        // cout << "\n2*x[n - 1] - x[n - 2] = " << "2 * " << x[n-1] << " - " << x[n-2] << " = " << (2*x[n - 1] - x[n - 2]) << endl;
+        // cout << "on {";
+        // for (auto sample : x) {
+        //     cout << sample << ", ";
+        // }
+        // cout << "}\n";
         return 2*x[n - 1] - x[n - 2];
     }
     static int x_2(vector<int>& x, int n) {

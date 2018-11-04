@@ -8,30 +8,30 @@ int AdvancedPredictor::predict() {
     // Fill results from predictors
     vector<short> samples = originalAudioSamples;
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
-    samples.push_back(0);
+    // samples.push_back(0);
 
-    for (int n = 0; n != samples.size(); n++) {
-        if (n > 3) {
+    for (int n = 3; n != samples.size(); n++) {
+        // if (n > 3) {
             resultsPredictor1.push_back(x_0());
             deviationPredictor1.push_back(e_0(samples, n));
-        }
+        // }
 
-        if (n > 2) {
+        // if (n > 2) {
             resultsPredictor2.push_back(x_1(samples, n));
             deviationPredictor2.push_back(e_1(samples, n));
-        }
+        // }
 
-        if (n > 1) {
+        // if (n > 1) {
             resultsPredictor3.push_back(x_2(samples, n));
             deviationPredictor3.push_back(e_2(samples, n));
-        }
+        // }
 
         resultsPredictor4.push_back(x_3(samples, n));
         deviationPredictor4.push_back(e_3(samples, n));        
     }
 
     // Update the last three samples
-    lastThreeSamples = vector<short>(samples.begin()+(samples.size()-4), samples.end()-1);
+    lastThreeSamples = vector<short>(samples.begin()+(samples.size()-3), samples.end());
     
     // Evaluate the smaller deviation, to choose the predictor
     vector<double> meanDeviations;
@@ -45,51 +45,64 @@ int AdvancedPredictor::predict() {
     // apply the predictions
     switch (predictorIndex) {
         case 0:
-            predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor1.begin(), resultsPredictor1.end());
+            residuals.insert(residuals.end(), deviationPredictor1.begin(), deviationPredictor1.end());
+            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor1.begin(), resultsPredictor1.end());
             break;
         case 1:
-            predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor2.begin()+1, resultsPredictor2.end());
+            residuals.insert(residuals.end(), deviationPredictor2.begin(), deviationPredictor2.end());
+            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor2.begin()+1, resultsPredictor2.end());
             break;
         case 2:
-            predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor3.begin()+2, resultsPredictor3.end());
+            residuals.insert(residuals.end(), deviationPredictor3.begin(), deviationPredictor3.end());
+            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor3.begin()+2, resultsPredictor3.end());
             break;
         case 3:
-            predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor4.begin()+4, resultsPredictor4.end());
+            residuals.insert(residuals.end(), deviationPredictor4.begin(), deviationPredictor4.end());
+            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor4.begin()+4, resultsPredictor4.end());
             break;
         default:
             break; // TODO : handle this case
     }
 
+    // cout << "(";
+    // for (auto sample : resultsPredictor2) {
+    //     cout << sample << ", ";
+    // }
+    // cout << ")";
     return 0;
 }
 
 int AdvancedPredictor::revert() {
     resetVectors();
-    int currentPredictor;
+    int predictorResult = 0;
+    int currentPredictor = 0;
     revertedAudioSamples.push_back(0);
     revertedAudioSamples.push_back(0);
     revertedAudioSamples.push_back(0);
-    for (int n = 0; n != predictedAudioSamples.size(); n++) {
-        if ((n % (framesBufferSize)) == 0) {
-            currentPredictor = usedPredictor[n/(framesBufferSize)];
-        }
+    // cout << "choices:" << endl;
+    revertedAudioSamples.push_back(residuals[0] + predictorResult);
+    for (int i = 1; i != residuals.size(); i++) {
+        currentPredictor = usedPredictor[i/framesBufferSize];
         switch (currentPredictor) {
             case 0: 
-                revertedAudioSamples.push_back(x_0_sym());
+                predictorResult = x_0();
                 break;
             case 1:
-                revertedAudioSamples.push_back(x_1_sym(predictedAudioSamples, n));
+                predictorResult = x_1(revertedAudioSamples, i+3);
                 break;
-            case 2:
-                revertedAudioSamples.push_back(x_2_sym(predictedAudioSamples, revertedAudioSamples, n));
+            case 2: 
+                predictorResult = x_2(revertedAudioSamples, i+3);
                 break;
-            case 3:
-                revertedAudioSamples.push_back(x_3_sym(predictedAudioSamples, revertedAudioSamples, n));
+            case 3: 
+                predictorResult = x_3(revertedAudioSamples, i+3);
                 break;
             default:
                 break; // TODO : handle this case
-        }  
+        }
+        revertedAudioSamples.push_back(residuals[i] + predictorResult);
+        // cout << "added " << (residuals[i] + predictorResult) << "\n";
     }
+    // cout << endl;
     revertedAudioSamples.erase(revertedAudioSamples.begin(), revertedAudioSamples.begin()+3);
     return 0;
 }
@@ -98,8 +111,20 @@ vector<char> AdvancedPredictor::getUsedPredictorVector() {
     return usedPredictor;
 }
 
+vector<int> AdvancedPredictor::getResiduals() {
+    return residuals;
+}
+
+void AdvancedPredictor::setResiduals(vector<int>& deviations) {
+    residuals = deviations;
+}
+
 char AdvancedPredictor::getUsedPredictorOn(int frame) {
     return usedPredictor[frame];
+}
+
+void AdvancedPredictor::setUsedPredictor(vector<char>& used) {
+    usedPredictor = used;
 }
 
 int AdvancedPredictor::resetVectors() {
