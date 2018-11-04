@@ -119,50 +119,61 @@ int main(void) {
     // vector<short> predictedSamples = predictor.getPredictedSamples();
     vector<int> residuals = predictor.getResiduals();
     cout << "length: " << residuals.size() << endl;
-    // bstream output = bstream{ "output.wavz", ios::out|ios::binary };
-    // Golomb golomb = Golomb(16384);
-    // int writtenSamples = 0;
-    // for (auto residual : residuals) {
-    //     golomb.encode(residual, output);
-    //     writtenSamples += 1;
-    //     if (writtenSamples % BLOCK_SIZE == 0) {
-    //         switch (predictor.getUsedPredictorOn(writtenSamples/BLOCK_SIZE)) {
-    //             case 0: 
-    //                 output.writeBit(0);
-    //                 output.writeBit(0);
-    //                 break;
-    //             case 1:
-    //                 output.writeBit(0);
-    //                 output.writeBit(1);
-    //                 break;
-    //             case 2: 
-    //                 output.writeBit(1);
-    //                 output.writeBit(0);
-    //                 break;
-    //             case 3:
-    //                 output.writeBit(1);
-    //                 output.writeBit(1);
-    //                 break;
-    //             default:
-    //                 break;
-    //         }
-    //     }
-    // }
-    // golomb.endEncode(output);
-    // bstream input = bstream{ "output.wavz", ios::in|ios::binary };
-    // vector<short> fromFile;
-    // cout << "DECODED:" << endl;
-    // int readSamples = 0;
-    // vector<char> predictorUsed;
-    // for (int i = 0; i != residuals.size(); i++) {
-    //     fromFile.push_back(golomb.decode(input));
-    //     readSamples += 1;
-    //     if (readSamples % BLOCK_SIZE == 0) {
-    //         predictorUsed.push_back((input.readBit() << 1) | input.readBit());
-    //     }
-    // }
-    // cout << "length: " << fromFile.size() << endl;
-    // predictor.setUsedPredictor(predictorUsed);
+    bstream output = bstream{ "output.wavz", ios::out|ios::binary };
+    Golomb golomb = Golomb(16384);
+    int writtenSamples = 0;
+    cout << "before:" << endl;
+    for (auto sample : predictor.getUsedPredictorVector()) {
+        cout << (int)sample << ", ";
+    }
+    cout << endl;
+    for (auto residual : residuals) {
+        if (writtenSamples % BLOCK_SIZE == 0) {
+            switch (predictor.getUsedPredictorOn(writtenSamples/BLOCK_SIZE)) {
+                case 0: 
+                    output.writeBit(0);
+                    output.writeBit(0);
+                    break;
+                case 1:
+                    output.writeBit(0);
+                    output.writeBit(1);
+                    break;
+                case 2: 
+                    output.writeBit(1);
+                    output.writeBit(0);
+                    break;
+                case 3:
+                    output.writeBit(1);
+                    output.writeBit(1);
+                    break;
+                default:
+                    break;
+            }
+        }
+        golomb.encode(residual, output);
+        writtenSamples += 1;
+    }
+    golomb.endEncode(output);
+    bstream input = bstream{ "output.wavz", ios::in|ios::binary };
+    vector<short> fromFile;
+    cout << "DECODED:" << endl;
+    int readSamples = 0;
+    vector<char> predictorUsed;
+    for (int i = 0; i != residuals.size(); i++) {
+        if (readSamples % BLOCK_SIZE == 0) {
+            predictorUsed.push_back((input.readBit() << 1) | input.readBit());
+        }
+        fromFile.push_back(golomb.decode(input));
+        readSamples += 1;
+    }
+    cout << "length: " << fromFile.size() << endl;
+    predictor.setUsedPredictor(predictorUsed);
+
+    cout << "after:" << endl;
+    for (auto sample : predictor.getUsedPredictorVector()) {
+        cout << (int)sample << ", ";
+    }
+    cout << endl;
 
     predictor.revert();
     samples = predictor.getRevertSamples();
