@@ -70,6 +70,7 @@ int bstream::grantWrite() {
         writeBit(0);          //     write a byte with the leftovers; (TODO)
     }                                       //
     close();                                // then close the file and exit.
+    return 0;
 }
 
 /**

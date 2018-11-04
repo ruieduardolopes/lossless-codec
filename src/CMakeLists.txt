@@ -12,8 +12,13 @@ ELSE ()			# if the kernel is not Darwin's
 ENDIF ()
 
 ### Specification of build flags, according to the chosen build type
-SET (CMAKE_CXX_FLAGS_RELEASE "-O3")
-SET (CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address")
+IF(${CMAKE_CXX_FLAGS_DEBUG})
+    #ENVIRONMENT (LD_PRELOAD=/usr/lib64/libasan.so)
+    #SET (CMAKE_CXX_FLAGS_DEBUG "-g3")
+    SET (CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address ")
+ELSE()
+    SET (CMAKE_CXX_FLAGS_RELEASE "-O3")
+ENDIF ()
 
 ### Specification of BASE_DIR variable
 SET (BASE_DIR ${CMAKE_SOURCE_DIR} )
