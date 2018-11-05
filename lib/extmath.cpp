@@ -33,3 +33,24 @@ short extmath::minIndex(vector<double> set) {
     }
     return minimumIndex;
 }
+
+vector<short> extmath::add(vector<short> left, vector<short> right){
+    vector<short> tmp;
+    if(left.size() >= right.size()){
+        for(int i = 0; i < right.size(); i++){
+            tmp.push_back(left[i] + right[i]);
+        }
+        for(int i = 0; i < left.size()-right.size(); i++){
+            tmp.push_back(0);
+        }
+    }
+    else{
+         for(int i = 0; i < left.size(); i++){
+            tmp.push_back(right[i] + left[i]);
+        }
+        for(int i = 0; i < right.size()-left.size(); i++){
+            tmp.push_back(0);
+        }
+    }
+    return tmp;
+}
