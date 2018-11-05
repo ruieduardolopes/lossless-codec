@@ -4,6 +4,7 @@
 #include "extmath.h"
 #include "IntegerFiniteImpulseResponseCoefficients.h"
 #include "Predictor.h"
+#include "Quantizer.h"
 
 using namespace IntegerFiniteImpulseResponseCoefficients;
 using namespace std;
@@ -18,6 +19,7 @@ class AdvancedPredictor : public Predictor {
         vector<int> getResiduals();
         void setResiduals(vector<int>& deviations);
     private: 
+        // Quantizer quantizer;
         int resetVectors();
         int verifyVectorCompleteness();
         vector<char> usedPredictor;

@@ -5,27 +5,18 @@
 int AdvancedPredictor::predict() {
     resetVectors();
     verifyVectorCompleteness();
+    
     // Fill results from predictors
     vector<short> samples = originalAudioSamples;
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
-    // samples.push_back(0);
 
     for (int n = 3; n != samples.size(); n++) {
-        // if (n > 3) {
-            resultsPredictor1.push_back(x_0());
-            deviationPredictor1.push_back(e_0(samples, n));
-        // }
-
-        // if (n > 2) {
-            resultsPredictor2.push_back(x_1(samples, n));
-            deviationPredictor2.push_back(e_1(samples, n));
-        // }
-
-        // if (n > 1) {
-            resultsPredictor3.push_back(x_2(samples, n));
-            deviationPredictor3.push_back(e_2(samples, n));
-        // }
-
+        resultsPredictor1.push_back(x_0());
+        deviationPredictor1.push_back(e_0(samples, n));
+        resultsPredictor2.push_back(x_1(samples, n));
+        deviationPredictor2.push_back(e_1(samples, n));
+        resultsPredictor3.push_back(x_2(samples, n));
+        deviationPredictor3.push_back(e_2(samples, n));
         resultsPredictor4.push_back(x_3(samples, n));
         deviationPredictor4.push_back(e_3(samples, n));        
     }
@@ -46,29 +37,19 @@ int AdvancedPredictor::predict() {
     switch (predictorIndex) {
         case 0:
             residuals.insert(residuals.end(), deviationPredictor1.begin(), deviationPredictor1.end());
-            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor1.begin(), resultsPredictor1.end());
             break;
         case 1:
             residuals.insert(residuals.end(), deviationPredictor2.begin(), deviationPredictor2.end());
-            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor2.begin()+1, resultsPredictor2.end());
             break;
         case 2:
             residuals.insert(residuals.end(), deviationPredictor3.begin(), deviationPredictor3.end());
-            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor3.begin()+2, resultsPredictor3.end());
             break;
         case 3:
             residuals.insert(residuals.end(), deviationPredictor4.begin(), deviationPredictor4.end());
-            // predictedAudioSamples.insert(predictedAudioSamples.end(), resultsPredictor4.begin()+4, resultsPredictor4.end());
             break;
         default:
             break; // TODO : handle this case
     }
-
-    // cout << "(";
-    // for (auto sample : resultsPredictor2) {
-    //     cout << sample << ", ";
-    // }
-    // cout << ")";
     return 0;
 }
 
@@ -79,7 +60,6 @@ int AdvancedPredictor::revert() {
     revertedAudioSamples.push_back(0);
     revertedAudioSamples.push_back(0);
     revertedAudioSamples.push_back(0);
-    // cout << "choices:" << endl;
     revertedAudioSamples.push_back(residuals[0] + predictorResult);
     for (int i = 1; i != residuals.size(); i++) {
         currentPredictor = usedPredictor[i/framesBufferSize];
@@ -100,9 +80,7 @@ int AdvancedPredictor::revert() {
                 break; // TODO : handle this case
         }
         revertedAudioSamples.push_back(residuals[i] + predictorResult);
-        // cout << "added " << (residuals[i] + predictorResult) << "\n";
     }
-    // cout << endl;
     revertedAudioSamples.erase(revertedAudioSamples.begin(), revertedAudioSamples.begin()+3);
     return 0;
 }
