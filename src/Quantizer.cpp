@@ -21,6 +21,12 @@ Quantizer::Quantizer(SndfileHandle soundFileHandler, int factor) {
 	}
 }
 
+Quantizer::Quantizer(vector<short> samples, int factor, int flag) {
+	Quantizer::codingFactor = factor;												// save value of quantization factor
+	Quantizer::flag = flag;															// record activation flag value
+	Quantizer::residualsamples = samples;													// record samples 
+}
+
 int Quantizer::encode() {
 	std::cout << Quantizer::samples.size() << std::endl;
 	for (auto sample : Quantizer::samples) {										// for each 16-bit sample in samples,
@@ -78,3 +84,5 @@ int Quantizer::saveWAVFile(std::string filename) {
 	file.writef(Quantizer::decodedSamples.data(), Quantizer::numberOfFrames);								// write data into the WAV file
 	return 0;																									// exit successfully
 }
+
+
