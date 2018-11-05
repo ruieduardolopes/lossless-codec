@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+int QUANTIZER_FACTOR = 1;
+
 int AdvancedPredictor::predict() {
     resetVectors();
     verifyVectorCompleteness();
@@ -9,16 +11,39 @@ int AdvancedPredictor::predict() {
     // Fill results from predictors
     vector<short> samples = originalAudioSamples;
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
-
+    short lastResidual1;
+    short lastResidual2;
+    short lastResidual3;
+    short lastResidual4;
+    
     for (int n = 3; n != samples.size(); n++) {
         resultsPredictor1.push_back(x_0());
-        deviationPredictor1.push_back(e_0(samples, n));
+        deviationPredictor1.push_back(e_0(samples, n) >> QUANTIZER_FACTOR);
+        lastResidual1 = e_0(samples, n);
+        if(n != samples.size()-1){
+            samples[n+1] = resultsPredictor1[resultsPredictor1.size() - 1] + (lastResidual1 >> QUANTIZER_FACTOR);
+        }
+
         resultsPredictor2.push_back(x_1(samples, n));
-        deviationPredictor2.push_back(e_1(samples, n));
+        deviationPredictor2.push_back(e_1(samples, n) >> QUANTIZER_FACTOR);
+        lastResidual2 = e_1(samples, n);
+        if(n != samples.size()-1){
+            samples[n+1] = resultsPredictor2[resultsPredictor2.size() - 1] + (lastResidual2 >> QUANTIZER_FACTOR);
+        }
+
         resultsPredictor3.push_back(x_2(samples, n));
-        deviationPredictor3.push_back(e_2(samples, n));
+        deviationPredictor3.push_back(e_2(samples, n) >> QUANTIZER_FACTOR);
+        lastResidual3 = e_2(samples, n);
+        if(n != samples.size()-1){
+            samples[n+1] = resultsPredictor3[resultsPredictor3.size() - 1] + (lastResidual3 >> QUANTIZER_FACTOR);
+        }
+
         resultsPredictor4.push_back(x_3(samples, n));
-        deviationPredictor4.push_back(e_3(samples, n));        
+        deviationPredictor4.push_back(e_3(samples, n) >> QUANTIZER_FACTOR); 
+        lastResidual4 = e_3(samples, n);
+        if(n != samples.size()-1){
+            samples[n+1] = resultsPredictor4[resultsPredictor4.size() - 1] + (lastResidual4 >> QUANTIZER_FACTOR);
+        }       
     }
 
     // Update the last three samples
@@ -36,23 +61,23 @@ int AdvancedPredictor::predict() {
     // apply the predictions
     switch (predictorIndex) {
         case 0:
-            deviationPredictor1 = Quantizer::quantize(deviationPredictor1, 0);
-            deviationPredictor1 = extmath::add(originalAudioSamples, deviationPredictor1);
+            // deviationPredictor1 = Quantizer::quantize(deviationPredictor1, 0);
+            // deviationPredictor1 = extmath::add(originalAudioSamples, deviationPredictor1);
             residuals.insert(residuals.end(), deviationPredictor1.begin(), deviationPredictor1.end());
             break;
         case 1:
-            deviationPredictor2 = Quantizer::quantize(deviationPredictor2, 0);
-            deviationPredictor2 = extmath::add(originalAudioSamples, deviationPredictor2);
+            // deviationPredictor2 = Quantizer::quantize(deviationPredictor2, 0);
+            // deviationPredictor2 = extmath::add(originalAudioSamples, deviationPredictor2);
             residuals.insert(residuals.end(), deviationPredictor2.begin(), deviationPredictor2.end());
             break;
         case 2:
-            deviationPredictor3 = Quantizer::quantize(deviationPredictor3, 0);
-            deviationPredictor3 = extmath::add(originalAudioSamples, deviationPredictor3);
+            // deviationPredictor3 = Quantizer::quantize(deviationPredictor3, 0);
+            // deviationPredictor3 = extmath::add(originalAudioSamples, deviationPredictor3);
             residuals.insert(residuals.end(), deviationPredictor3.begin(), deviationPredictor3.end());
             break;
         case 3:
-            deviationPredictor4 = Quantizer::quantize(deviationPredictor4, 0  );
-             deviationPredictor4 = extmath::add(originalAudioSamples, deviationPredictor4);
+            // deviationPredictor4 = Quantizer::quantize(deviationPredictor4, 0  );
+            // deviationPredictor4 = extmath::add(originalAudioSamples, deviationPredictor4);
             residuals.insert(residuals.end(), deviationPredictor4.begin(), deviationPredictor4.end());
             break;
         default:
