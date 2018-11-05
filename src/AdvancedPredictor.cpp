@@ -36,15 +36,19 @@ int AdvancedPredictor::predict() {
     // apply the predictions
     switch (predictorIndex) {
         case 0:
+            Quantizer::quantize(deviationPredictor1, 4);
             residuals.insert(residuals.end(), deviationPredictor1.begin(), deviationPredictor1.end());
             break;
         case 1:
+            Quantizer::quantize(deviationPredictor2, 4);
             residuals.insert(residuals.end(), deviationPredictor2.begin(), deviationPredictor2.end());
             break;
         case 2:
+            Quantizer::quantize(deviationPredictor3, 4);
             residuals.insert(residuals.end(), deviationPredictor3.begin(), deviationPredictor3.end());
             break;
         case 3:
+            Quantizer::quantize(deviationPredictor4, 4);
             residuals.insert(residuals.end(), deviationPredictor4.begin(), deviationPredictor4.end());
             break;
         default:
