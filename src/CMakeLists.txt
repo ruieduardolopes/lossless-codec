@@ -57,4 +57,4 @@ ADD_LIBRARY(advancedpredictor  ${BASE_DIR}/AdvancedPredictor.cpp)
 add_executable (losslesscodec main.cpp)
 
 ### Targeting libraries to further link with losslesscodec executable
-target_link_libraries (losslesscodec sndfile bstream extmath golomb quantizer audiohandler naivepredictor advancedpredictor)
+target_link_libraries (losslesscodec sndfile bstream extmath golomb quantizer audiohandler naivepredictor advancedpredictor boost_program_options boost_filesystem boost_iostreams boost_system)
