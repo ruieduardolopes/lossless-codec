@@ -10,6 +10,7 @@
 using namespace std;
 
 constexpr int BLOCK_SIZE = 512;
+constexpr int M_RESIDUALS_SIZE = 65536;
 string VERSION = "1.0.0";
 
 template <class T>
@@ -124,25 +125,19 @@ int writeEncodedPredictorIndex(int writtenSamples, bstream& file, AdvancedPredic
     return writtenSamples + 1;
 }
 
-// int readEncodedPredictorIndex(int readSamples, bstream& file, vector<char>& predictors) {
-//     if (readSamples % BLOCK_SIZE == 0) {
-//         predictors.push_back((file.readBit() << 1) | file.readBit());
-//     }
-//     readSamples += 1;
-//     return readSamples;
-// }
-
 int main(int argc, char *argv[]) {
     bool lossy, decode, quiet;
     vector<string> input_files;
     parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
-    AudioHandler audio = AudioHandler("Pink Floyd - Pigs on the Wing, Part 1.wav", 1);
-    AdvancedPredictor predictor = AdvancedPredictor();
-    vector<short> samples;
-    predictor.setFramesBufferSize(BLOCK_SIZE);
+
     int nFrames = 0;
-    vector<short> original;
     vector<int> residuals;
+    vector<short> samples;
+    vector<short> original;
+    AudioHandler audio = AudioHandler("sample07.wav", 1);
+    AdvancedPredictor predictor = AdvancedPredictor();
+    predictor.setFramesBufferSize(BLOCK_SIZE);
+
     while (true) {
         int frames;
         if ((frames = audio.loadBlock()) == -2) {
@@ -158,71 +153,33 @@ int main(int argc, char *argv[]) {
         }
     }
     residuals = predictor.getResiduals();
-    cout << "length: " << residuals.size() << endl;
+
+    // ENCODING to file
     bstream output = bstream{ "output.wavz", ios::out|ios::binary };
     Golomb golomb = Golomb(2);
+    cout << "Residuals' size is " << residuals.size() << endl;
+    Golomb(M_RESIDUALS_SIZE).encode(residuals.size(), output);
     int writtenSamples = 0;
-    cout << "before:" << endl;
-    for (auto sample : predictor.getUsedPredictorVector()) {
-        cout << (int)sample << ", ";
-    }
-    cout << endl;
-
-    cout << "BEFORE:" << endl;
-    for (int j = 88; j != 91; j++) {
-        for (int i = 0; i != 512; i++) {
-            cout << residuals[i+(j*BLOCK_SIZE)] << ", ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-
     for (auto residual : residuals) {
         writtenSamples = writeEncodedPredictorIndex(writtenSamples, output, predictor);
         golomb.encode(residual, output);
     }
-    cout << endl;
     golomb.endEncode(output);
 
-
+    // DECODING from file
     bstream input = bstream{ "output.wavz", ios::in|ios::binary };
     vector<int> fromFile;
-    cout << "DECODED:" << endl;
     int readSamples = 0;
     vector<char> predictorUsed;
-
-
-
-    // cout << "read samples : " ;
-    cout << "AFTER:" << endl;
-    for (int i = 0; i != residuals.size(); i++) {
+    long size = Golomb(M_RESIDUALS_SIZE).decode(input);
+    for (int i = 0; i != size; i++) {
         if (readSamples++ % BLOCK_SIZE == 0) {
-            // cout << (readSamples-1) << ", ";
             predictorUsed.push_back(input.readNBits(2));
-            // if (i < 1024) cout << "P: " << (int)predictorUsed.back() << ", ";
         }
         fromFile.push_back(golomb.decode(input));
-        // if (i < 1024) cout << fromFile.back() << ", ";
     }
-    cout << endl;
-    cout << endl;
-
-    // for (int j = 88; j != 91; j++) {
-    //     for (int i = 0; i != 512; i++) {
-    //         cout << fromFile[i+(j*BLOCK_SIZE)] << ", ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << endl;
-
-    cout << "length: " << fromFile.size() << endl;
+    predictor.setResiduals(fromFile);
     predictor.setUsedPredictor(predictorUsed);
-
-    // cout << "after:" << endl;
-    // for (auto sample : predictor.getUsedPredictorVector()) {
-    //     cout << (int)sample << ", ";
-    // }
-    // cout << endl;
 
     predictor.revert();
     samples = predictor.getRevertSamples();
