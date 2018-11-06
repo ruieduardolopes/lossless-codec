@@ -12,9 +12,9 @@ class bstream : public fstream {
         bstream(const char *fname, ios_base::openmode mode) : fstream(fname, mode) {  };
         ~bstream();
         int writeBit(uint8_t value);
-        int writeNBits(uint8_t value, int num);
+        int writeNBits(uint32_t value, int num);
         uint8_t readBit();
-        uint8_t readNBits(int num);
+        uint32_t readNBits(int num);
         int grantWrite();
         void resetBitPointers(bool readOperation) {
             if (!readOperation) {

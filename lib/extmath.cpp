@@ -4,7 +4,7 @@ double extmath::lb(int x) {
     return log10(x) / log10(2);
 }
 
-double extmath::mean(vector<short> set) {
+double extmath::mean(vector<int> set) {
     double sum;
     for (auto element : set) {
         sum += element;
@@ -43,8 +43,7 @@ vector<short> extmath::add(vector<short> left, vector<short> right){
         for(int i = 0; i < left.size()-right.size(); i++){
             tmp.push_back(0);
         }
-    }
-    else{
+    } else {
          for(int i = 0; i < left.size(); i++){
             tmp.push_back(right[i] + left[i]);
         }

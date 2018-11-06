@@ -9,7 +9,7 @@
 
 using namespace std;
 
-constexpr int BLOCK_SIZE = 65536;
+constexpr int BLOCK_SIZE = 512;
 string VERSION = "1.0.0";
 
 template <class T>
@@ -100,44 +100,43 @@ int parse_arguments(int argc, char *argv[], bool *lossy, bool *decode, bool *qui
 
 int writeEncodedPredictorIndex(int writtenSamples, bstream& file, AdvancedPredictor& predictor) {
     if (writtenSamples % BLOCK_SIZE == 0) {
-            switch (predictor.getUsedPredictorOn(writtenSamples/BLOCK_SIZE)) {
-                case 0: 
-                    file.writeBit(0);
-                    file.writeBit(0);
-                    break;
-                case 1:
-                    file.writeBit(0);
-                    file.writeBit(1);
-                    break;
-                case 2: 
-                    file.writeBit(1);
-                    file.writeBit(0);
-                    break;
-                case 3:
-                    file.writeBit(1);
-                    file.writeBit(1);
-                    break;
-                default:
-                    break;
-            }
+        switch (predictor.getUsedPredictorOn(writtenSamples/BLOCK_SIZE)) {
+            case 0: 
+                file.writeBit(0);
+                file.writeBit(0);
+                break;
+            case 1:
+                file.writeBit(0);
+                file.writeBit(1);
+                break;
+            case 2: 
+                file.writeBit(1);
+                file.writeBit(0);
+                break;
+            case 3:
+                file.writeBit(1);
+                file.writeBit(1);
+                break;
+            default:
+                break;
         }
-        writtenSamples += 1;
-        return writtenSamples;
+    }
+    return writtenSamples + 1;
 }
 
-int readEncodedPredictorIndex(int readSamples, bstream& file, vector<char>& predictors) {
-    if (readSamples % BLOCK_SIZE == 0) {
-        predictors.push_back((file.readBit() << 1) | file.readBit());
-    }
-    readSamples += 1;
-    return readSamples;
-}
+// int readEncodedPredictorIndex(int readSamples, bstream& file, vector<char>& predictors) {
+//     if (readSamples % BLOCK_SIZE == 0) {
+//         predictors.push_back((file.readBit() << 1) | file.readBit());
+//     }
+//     readSamples += 1;
+//     return readSamples;
+// }
 
 int main(int argc, char *argv[]) {
     bool lossy, decode, quiet;
     vector<string> input_files;
     parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
-    AudioHandler audio = AudioHandler("sample07.wav", 1);
+    AudioHandler audio = AudioHandler("Pink Floyd - Pigs on the Wing, Part 1.wav", 1);
     AdvancedPredictor predictor = AdvancedPredictor();
     vector<short> samples;
     predictor.setFramesBufferSize(BLOCK_SIZE);
@@ -161,7 +160,7 @@ int main(int argc, char *argv[]) {
     residuals = predictor.getResiduals();
     cout << "length: " << residuals.size() << endl;
     bstream output = bstream{ "output.wavz", ios::out|ios::binary };
-    Golomb golomb = Golomb(8192);
+    Golomb golomb = Golomb(2);
     int writtenSamples = 0;
     cout << "before:" << endl;
     for (auto sample : predictor.getUsedPredictorVector()) {
@@ -169,35 +168,61 @@ int main(int argc, char *argv[]) {
     }
     cout << endl;
 
+    cout << "BEFORE:" << endl;
+    for (int j = 88; j != 91; j++) {
+        for (int i = 0; i != 512; i++) {
+            cout << residuals[i+(j*BLOCK_SIZE)] << ", ";
+        }
+        cout << endl;
+    }
+    cout << endl;
 
     for (auto residual : residuals) {
         writtenSamples = writeEncodedPredictorIndex(writtenSamples, output, predictor);
         golomb.encode(residual, output);
     }
+    cout << endl;
     golomb.endEncode(output);
 
 
     bstream input = bstream{ "output.wavz", ios::in|ios::binary };
-    vector<short> fromFile;
+    vector<int> fromFile;
     cout << "DECODED:" << endl;
     int readSamples = 0;
     vector<char> predictorUsed;
 
 
-    for (int i = 0; i != residuals.size(); i++) {
-        readSamples = readEncodedPredictorIndex(readSamples, input, predictorUsed);
-        fromFile.push_back(golomb.decode(input));
-    }
 
+    // cout << "read samples : " ;
+    cout << "AFTER:" << endl;
+    for (int i = 0; i != residuals.size(); i++) {
+        if (readSamples++ % BLOCK_SIZE == 0) {
+            // cout << (readSamples-1) << ", ";
+            predictorUsed.push_back(input.readNBits(2));
+            // if (i < 1024) cout << "P: " << (int)predictorUsed.back() << ", ";
+        }
+        fromFile.push_back(golomb.decode(input));
+        // if (i < 1024) cout << fromFile.back() << ", ";
+    }
+    cout << endl;
+    cout << endl;
+
+    // for (int j = 88; j != 91; j++) {
+    //     for (int i = 0; i != 512; i++) {
+    //         cout << fromFile[i+(j*BLOCK_SIZE)] << ", ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl;
 
     cout << "length: " << fromFile.size() << endl;
     predictor.setUsedPredictor(predictorUsed);
 
-    cout << "after:" << endl;
-    for (auto sample : predictor.getUsedPredictorVector()) {
-        cout << (int)sample << ", ";
-    }
-    cout << endl;
+    // cout << "after:" << endl;
+    // for (auto sample : predictor.getUsedPredictorVector()) {
+    //     cout << (int)sample << ", ";
+    // }
+    // cout << endl;
 
     predictor.revert();
     samples = predictor.getRevertSamples();

@@ -18,6 +18,7 @@ class AdvancedPredictor : public Predictor {
         void setUsedPredictor(vector<char>& used);
         vector<int> getResiduals();
         void setResiduals(vector<int>& deviations);
+        vector<short> getRevertSamples();
     private: 
         // Quantizer quantizer;
         int resetVectors();
@@ -28,11 +29,12 @@ class AdvancedPredictor : public Predictor {
         vector<short> resultsPredictor2;
         vector<short> resultsPredictor3;
         vector<short> resultsPredictor4;
-        vector<short> deviationPredictor1;
-        vector<short> deviationPredictor2;
-        vector<short> deviationPredictor3;
-        vector<short> deviationPredictor4;
+        vector<int> deviationPredictor1;
+        vector<int> deviationPredictor2;
+        vector<int> deviationPredictor3;
+        vector<int> deviationPredictor4;
         vector<int> residuals;
+        vector<short> finalSamples;
 };
 
 #endif

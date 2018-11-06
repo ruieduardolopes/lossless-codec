@@ -26,7 +26,7 @@ int bstream::writeBit(uint8_t value) {
  * @param pos bit position from which to start writting.
  * @return int {@code 0} if method runs successfully; otherwise the error code.
  */
-int bstream::writeNBits(uint8_t value, int num){
+int bstream::writeNBits(uint32_t value, int num){
     for (int i = num-1; i >= 0; i--) {
         writeBit((value >> i) & 0x01);
     }
@@ -57,8 +57,8 @@ uint8_t bstream::readBit() {
  * @param num number of bits to get from file.
  * @return uint8_t the byte containing solely the wanted bits on its LSB.
  */
-uint8_t bstream::readNBits(int num){
-    uint8_t value;
+uint32_t bstream::readNBits(int num){
+    uint32_t value = 0;
     for (int i = 0; i < num; i++){
         value = value << 1 | readBit();
     }

@@ -3,7 +3,8 @@
 using namespace std;
 
 constexpr size_t FRAMES_BUFFER_SIZE = 65536;            // Buffer for reading frames
-vector<short> Quantizer::residualSamples;
+vector<int> Quantizer::residualSamples;
+vector<short> Quantizer::revertedSamples;
 
 Quantizer::Quantizer(SndfileHandle soundFileHandler, int factor) {
 	Quantizer::codingFactor = factor;												// save value of quantization factor

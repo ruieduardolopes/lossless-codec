@@ -40,25 +40,29 @@ namespace IntegerFiniteImpulseResponseCoefficients {
     static char e_0(vector<char>& x, int n) {
         return x[n];
     }
-    static short e_0(vector<short>& x, int n) {
+
+    static int e_0(vector<short>& x, int n) {
         return x[n];
     }
+
     static int e_0(vector<int>& x, int n) {
         return x[n];
     }
     static char e_1(vector<char>& x, int n) {
         return e_0(x, n) - e_0(x, n-1);
     }
-    static short e_1(vector<short>& x, int n) {
+
+    static int e_1(vector<short>& x, int n) {
         return e_0(x, n) - e_0(x, n-1);
     }
+    
     static int e_1(vector<int>& x, int n) {
         return e_0(x, n) - e_0(x, n-1);
     }
     static char e_2(vector<char>& x, int n) {
         return e_1(x, n) - e_1(x, n-1);
     }
-    static short e_2(vector<short>& x, int n) {
+    static int e_2(vector<short>& x, int n) {
         return e_1(x, n) - e_1(x, n-1);
     }
     static int e_2(vector<int>& x, int n) {
@@ -67,7 +71,7 @@ namespace IntegerFiniteImpulseResponseCoefficients {
     static char e_3(vector<char>& x, int n) {
         return e_2(x, n) - e_2(x, n-1);
     }
-    static short e_3(vector<short>& x, int n) {
+    static int e_3(vector<short>& x, int n) {
         return e_2(x, n) - e_2(x, n-1);
     }
     static int e_3(vector<int>& x, int n) {

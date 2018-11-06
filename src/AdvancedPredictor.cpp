@@ -2,48 +2,47 @@
 
 #include <iostream>
 
-int QUANTIZER_FACTOR = 1;
+int QUANTIZER_FACTOR = 7;
+bool alreadyPrinted = false;
+bool alreadyPrinted2 = false;
+int LEVEL = 10;
 
 int AdvancedPredictor::predict() {
     resetVectors();
     verifyVectorCompleteness();
     
     // Fill results from predictors
-    vector<short> samples = originalAudioSamples;
+    vector<short> samples2 = originalAudioSamples;
+    if (!alreadyPrinted) {
+        cout << "Original Samples" << endl;
+        for (int i = 0; i != LEVEL; i++) {
+            cout << samples2[i] << ", ";
+        }
+        cout << endl;
+    }
+    vector<int> samples = Quantizer::quantize(originalAudioSamples, QUANTIZER_FACTOR);
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
-    short lastResidual1;
-    short lastResidual2;
-    short lastResidual3;
-    short lastResidual4;
+    int lastResidual1;
+    int lastResidual2;
+    int lastResidual3;
+    int lastResidual4;
     
     for (int n = 3; n != samples.size(); n++) {
         resultsPredictor1.push_back(x_0());
-        deviationPredictor1.push_back(e_0(samples, n) >> QUANTIZER_FACTOR);
         lastResidual1 = e_0(samples, n);
-        if(n != samples.size()-1){
-            samples[n+1] = resultsPredictor1[resultsPredictor1.size() - 1] + (lastResidual1 >> QUANTIZER_FACTOR);
-        }
+        deviationPredictor1.push_back(lastResidual1);
 
         resultsPredictor2.push_back(x_1(samples, n));
-        deviationPredictor2.push_back(e_1(samples, n) >> QUANTIZER_FACTOR);
         lastResidual2 = e_1(samples, n);
-        if(n != samples.size()-1){
-            samples[n+1] = resultsPredictor2[resultsPredictor2.size() - 1] + (lastResidual2 >> QUANTIZER_FACTOR);
-        }
+        deviationPredictor2.push_back(lastResidual2);
 
         resultsPredictor3.push_back(x_2(samples, n));
-        deviationPredictor3.push_back(e_2(samples, n) >> QUANTIZER_FACTOR);
         lastResidual3 = e_2(samples, n);
-        if(n != samples.size()-1){
-            samples[n+1] = resultsPredictor3[resultsPredictor3.size() - 1] + (lastResidual3 >> QUANTIZER_FACTOR);
-        }
+        deviationPredictor3.push_back(lastResidual3);
 
         resultsPredictor4.push_back(x_3(samples, n));
-        deviationPredictor4.push_back(e_3(samples, n) >> QUANTIZER_FACTOR); 
         lastResidual4 = e_3(samples, n);
-        if(n != samples.size()-1){
-            samples[n+1] = resultsPredictor4[resultsPredictor4.size() - 1] + (lastResidual4 >> QUANTIZER_FACTOR);
-        }       
+        deviationPredictor4.push_back(lastResidual4); 
     }
 
     // Update the last three samples
@@ -61,28 +60,34 @@ int AdvancedPredictor::predict() {
     // apply the predictions
     switch (predictorIndex) {
         case 0:
-            // deviationPredictor1 = Quantizer::quantize(deviationPredictor1, 0);
-            // deviationPredictor1 = extmath::add(originalAudioSamples, deviationPredictor1);
             residuals.insert(residuals.end(), deviationPredictor1.begin(), deviationPredictor1.end());
             break;
         case 1:
-            // deviationPredictor2 = Quantizer::quantize(deviationPredictor2, 0);
-            // deviationPredictor2 = extmath::add(originalAudioSamples, deviationPredictor2);
             residuals.insert(residuals.end(), deviationPredictor2.begin(), deviationPredictor2.end());
             break;
         case 2:
-            // deviationPredictor3 = Quantizer::quantize(deviationPredictor3, 0);
-            // deviationPredictor3 = extmath::add(originalAudioSamples, deviationPredictor3);
             residuals.insert(residuals.end(), deviationPredictor3.begin(), deviationPredictor3.end());
             break;
         case 3:
-            // deviationPredictor4 = Quantizer::quantize(deviationPredictor4, 0  );
-            // deviationPredictor4 = extmath::add(originalAudioSamples, deviationPredictor4);
             residuals.insert(residuals.end(), deviationPredictor4.begin(), deviationPredictor4.end());
             break;
         default:
             break; // TODO : handle this case
     }
+    if (!alreadyPrinted) {
+        cout << "Residuals 0" << endl;
+        for (int i = 0; i != LEVEL; i++) {
+            cout << deviationPredictor1[i] << ", ";
+        }
+        cout << endl;
+        cout << "Residuals 1" << endl;
+        for (int i = 0; i != LEVEL; i++) {
+            cout << deviationPredictor2[i] << ", ";
+        }
+        cout << endl;
+    }
+    alreadyPrinted = true;
+
     return 0;
 }
 
@@ -115,11 +120,23 @@ int AdvancedPredictor::revert() {
         revertedAudioSamples.push_back(residuals[i] + predictorResult);
     }
     revertedAudioSamples.erase(revertedAudioSamples.begin(), revertedAudioSamples.begin()+3);
+    finalSamples = Quantizer::dequantize(revertedAudioSamples, QUANTIZER_FACTOR);
+    if (!alreadyPrinted2) {
+        cout << "Reverted Samples" << endl;
+        for (int i = 0; i != LEVEL; i++) {
+            cout << finalSamples[i] << ", ";
+        }
+    }
+    // alreadyPrinted = true;
     return 0;
 }
 
 vector<char> AdvancedPredictor::getUsedPredictorVector() {
     return usedPredictor;
+}
+
+vector<short> AdvancedPredictor::getRevertSamples() {
+    return finalSamples;
 }
 
 vector<int> AdvancedPredictor::getResiduals() {

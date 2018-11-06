@@ -22,10 +22,12 @@ int Golomb::generate_truncated_binary_code(int remaindr, bstream& file) {
 int Golomb::generate_unary_code(int quotient, bstream& file) {
     int unaryCode = 0;
     for (int i = 0; i != quotient; i++) { 
-        unaryCode = (unaryCode + 1) << 1; 
+        // unaryCode = (unaryCode + 1) << 1; 
+        file.writeBit(1);
     }
+    file.writeBit(0);
     //cout << "Unary code is " << bitset<8>(unaryCode) << " for quotient " << quotient << endl;
-    file.writeNBits(unaryCode, quotient+1);
+    // file.writeNBits(unaryCode, quotient+1);
     //cout << "ended writing unary code" << endl;
     return unaryCode;
 }
@@ -57,7 +59,7 @@ int Golomb::decode(bstream& file) {
         }
     }
     int nextInputBits = 0;
-    for (int i = 0; i != bValue-1; i++) {
+    for (int i = 0; i < bValue-1; i++) {
         nextInputBits = (nextInputBits << i) | file.readBit();
     }
     if (nextInputBits < tValue) {
