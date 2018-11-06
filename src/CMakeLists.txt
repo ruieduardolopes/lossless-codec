@@ -47,6 +47,9 @@ ADD_LIBRARY(quantizer  ${BASE_DIR}/Quantizer.cpp)
 ### Add a new and own-made library (wavdec)
 ADD_LIBRARY(audiohandler  ${BASE_DIR}/AudioHandler.cpp)
 
+### Targeting libraries to further link with losslesscodec executable
+target_link_libraries (audiohandler sndfile)
+
 ### Add a new and own-made library (wavdec)
 ADD_LIBRARY(naivepredictor  ${BASE_DIR}/NaivePredictor.cpp)
 
@@ -60,4 +63,4 @@ target_link_libraries (advancedpredictor quantizer)
 add_executable (losslesscodec main.cpp)
 
 ### Targeting libraries to further link with losslesscodec executable
-target_link_libraries (losslesscodec sndfile bstream extmath golomb audiohandler naivepredictor quantizer advancedpredictor boost_program_options boost_filesystem boost_iostreams boost_system)
+target_link_libraries (losslesscodec bstream extmath golomb sndfile audiohandler naivepredictor quantizer advancedpredictor boost_program_options boost_filesystem boost_iostreams boost_system)

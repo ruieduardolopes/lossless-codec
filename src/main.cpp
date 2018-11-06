@@ -125,21 +125,22 @@ int writeEncodedPredictorIndex(int writtenSamples, bstream& file, AdvancedPredic
 }
 
 int writeHeader(bstream& file, long size, long nFrames, AudioHandler& audio) {
-    for (int i = 63; i >= 0; i--) {
-        file.writeBit(size >> i);
+    for (int k = 63; k >= 0; k--) {
+        file.writeBit(size >> k);
     }
-    for (int i = 63; i >= 0; i--) {
-        file.writeBit(nFrames >> i);
+    for (int p = 63; p >= 0; p--) {
+        file.writeBit(nFrames >> p);
     }
     for (int i = 31; i >= 0; i--) {
         file.writeBit(audio.getFormat() >> i);
     }
-    for (int i = 31; i >= 0; i--) {
-        file.writeBit(audio.getSamplerate() >> i);
+    for (int j = 31; j >= 0; j--) {
+        file.writeBit(audio.getSamplerate() >> j);
     }
-    for (int i = 31; i >= 0; i--) {
-        file.writeBit(audio.getChannels() >> i);
+    for (int m = 31; m >= 0; m--) {
+        file.writeBit(audio.getChannels() >> m);
     }
+    return 0;
 }
 
 int readHeader(bstream& file, long *size, long *nFrames, int *format, int *samplerate, int *channels) {
@@ -148,53 +149,59 @@ int readHeader(bstream& file, long *size, long *nFrames, int *format, int *sampl
     *format = file.readNBits(32);
     *samplerate = file.readNBits(32);
     *channels = file.readNBits(32);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
-    // bool lossy, decode, quiet;
-    // vector<string> input_files;
-    // parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
+    bool lossy, decode, quiet;
+    vector<string> input_files;
+    parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
 
-    // int nFrames = 0;
-    // vector<int> residuals;
-    // vector<short> samples;
-    // vector<short> original;
-    // AudioHandler audio = AudioHandler("sample07.wav", 1);
-    // AdvancedPredictor predictor = AdvancedPredictor();
-    // predictor.setFramesBufferSize(BLOCK_SIZE);
-
-    // while (true) {
-    //     int frames;
-    //     if ((frames = audio.loadBlock()) == -2) {
-    //         break;
-    //     }
-    //     samples = audio.getSamples_16();
-    //     original.insert(original.end(), samples.begin(), samples.end());
-    //     nFrames += frames;
-    //     for (int i = 0; i != (int)(samples.size()/BLOCK_SIZE); i++) {
-    //         vector<short> block = vector<short>(samples.begin()+(BLOCK_SIZE*i), samples.begin()+(BLOCK_SIZE*(i+1)));
-    //         predictor.setSamples(block);
-    //         predictor.predict();
-    //     }
-    // }
-    // residuals = predictor.getResiduals();
-
-    // // ENCODING to file
-    // bstream output = bstream{ "output.wavz", ios::out|ios::binary };
-    // writeHeader(output, residuals.size(), nFrames, audio);
-    // Golomb golomb = Golomb(2);
-    // cout << "Residual's size is " << (residuals.size()) << endl;
-    // int writtenSamples = 0;
-    // for (auto residual : residuals) {
-    //     writtenSamples = writeEncodedPredictorIndex(writtenSamples, output, predictor);
-    //     golomb.encode(residual, output);
-    // }
-    // golomb.endEncode(output);
-
-    Golomb golomb = Golomb(2);
+    int nFrames = 0;
+    vector<int> residuals;
+    vector<short> samples;
+    vector<short> original;
+    AudioHandler audio = AudioHandler("sample07.wav", 1);
     AdvancedPredictor predictor = AdvancedPredictor();
     predictor.setFramesBufferSize(BLOCK_SIZE);
-    vector<short> samples;
+
+    while (true) {
+        int frames;
+        if ((frames = audio.loadBlock()) == -2) {
+            break;
+        }
+        samples = audio.getSamples_16();
+        original.insert(original.end(), samples.begin(), samples.end());
+        nFrames += frames;
+        for (int i = 0; i != (int)(samples.size()/BLOCK_SIZE); i++) {
+            vector<short> block = vector<short>(samples.begin()+(BLOCK_SIZE*i), samples.begin()+(BLOCK_SIZE*(i+1)));
+            predictor.setSamples(block);
+            predictor.predict();
+        }
+    }
+    residuals = predictor.getResiduals();
+
+    // ENCODING to file
+    bstream output = bstream{ "output.wavz", ios::out|ios::binary };
+    // cout << "Before write" << endl;
+    writeHeader(output, residuals.size(), nFrames, audio);
+    // cout << "After write" << endl;
+    Golomb golomb = Golomb(3);
+    // cout << "Residual's size is " << (residuals.size()) << endl;
+    int writtenSamples = 0;
+    for (auto residual : residuals) {
+        // cout << "Writing encoded predictor" << endl;
+        writtenSamples = writeEncodedPredictorIndex(writtenSamples, output, predictor);
+        // cout << "WrittenSamples" << endl;
+        golomb.encode(residual, output);
+    }
+    golomb.endEncode(output);
+    
+    // cout << "End ENCODE" << endl;
+    // Golomb golomb = Golomb(2);
+    // AdvancedPredictor predictor = AdvancedPredictor();
+    // predictor.setFramesBufferSize(BLOCK_SIZE);
+    // vector<short> samples;
 
     // DECODING from file
     bstream input = bstream{ "output.wavz", ios::in|ios::binary };
