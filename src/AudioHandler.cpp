@@ -126,3 +126,29 @@ int AudioHandler::save(std::string filename, vector<short>& samples, int numberO
     file.writef(samples.data(), numberOfFrames);		
 	return 0;																							
 }
+
+int AudioHandler::save(std::string filename, vector<short>& samples, int numberOfFrames, int format, int channels, int samplerate) {
+	if (samples.empty()) {																
+		return 1; 																								
+	} 																										
+    cout << "\nFile made with:" << endl;
+    cout << "Format: " << format << endl;
+    cout << "Channels: " << channels << endl;
+    cout << "Sample Rate: " << samplerate << endl;
+    cout << "Number of Frames: " << numberOfFrames << endl;
+	SndfileHandle file { filename, SFM_WRITE, format, channels, samplerate }; 
+    file.writef(samples.data(), numberOfFrames);		
+	return 0;																							
+}
+
+int AudioHandler::getChannels() {
+    return channels;
+}
+
+int AudioHandler::getFormat() {
+    return format;
+}
+
+int AudioHandler::getSamplerate() {
+    return samplerate;
+}
