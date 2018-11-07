@@ -10,6 +10,8 @@
 using namespace std;
 
 constexpr int BLOCK_SIZE = 512;
+constexpr int PREDICTOR_OVERHEAD = 2;
+constexpr int GOLOMB_OVERHEAD = 0;
 string VERSION = "1.0.0";
 
 template <class T>
@@ -124,19 +126,49 @@ int writeEncodedPredictorIndex(int writtenSamples, bstream& file, AdvancedPredic
     return writtenSamples + 1;
 }
 
-// int readEncodedPredictorIndex(int readSamples, bstream& file, vector<char>& predictors) {
-//     if (readSamples % BLOCK_SIZE == 0) {
-//         predictors.push_back((file.readBit() << 1) | file.readBit());
-//     }
-//     readSamples += 1;
-//     return readSamples;
-// }
+int estimateGolombMValue(vector<int> vec, int blockLength) {
+    int i = 0;
+    int mValue;
+    int quantity;
+    int quotient;
+    int toReturn;
+    int bitAmount;
+    int kValue = 2;
+    long golombFileLength = -1;
+    vector<int>::iterator iterator;
+    long golombFileLengthTemp = LONG_MAX;
+
+    while (golombFileLength <= golombFileLengthTemp) {
+        if (golombFileLength != -1 && golombFileLength < golombFileLengthTemp) {
+            golombFileLengthTemp = golombFileLength;
+        }
+        golombFileLength = 0;
+        toReturn = mValue;
+        mValue = (int)pow(2, kValue);
+        bitAmount = (int)log2(mValue);
+        for (iterator = vec.begin(); iterator != vec.end(); i++, iterator++) {
+            if (*iterator < 0) {
+                quantity = -(1 + *iterator * 2);
+            } else {
+                quantity = 2 * *iterator;
+            }
+            quotient = quantity / mValue;
+            golombFileLength += (quotient + 1); // from unary coding
+            golombFileLength += bitAmount;      // from truncated coding (considering that m = 2^k!)
+            if (i % blockLength == 0) {
+                golombFileLength += PREDICTOR_OVERHEAD + GOLOMB_OVERHEAD;
+            }
+        }
+        kValue++;
+    }
+    return toReturn;
+}
 
 int main(int argc, char *argv[]) {
     bool lossy, decode, quiet;
     vector<string> input_files;
     parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
-    AudioHandler audio = AudioHandler("Pink Floyd - Pigs on the Wing, Part 1.wav", 1);
+    AudioHandler audio = AudioHandler("sample07.wav", 1);
     AdvancedPredictor predictor = AdvancedPredictor();
     vector<short> samples;
     predictor.setFramesBufferSize(BLOCK_SIZE);
@@ -160,7 +192,7 @@ int main(int argc, char *argv[]) {
     residuals = predictor.getResiduals();
     cout << "length: " << residuals.size() << endl;
     bstream output = bstream{ "output.wavz", ios::out|ios::binary };
-    Golomb golomb = Golomb(2);
+    Golomb golomb = Golomb(estimateGolombMValue(residuals, BLOCK_SIZE));
     int writtenSamples = 0;
     cout << "before:" << endl;
     for (auto sample : predictor.getUsedPredictorVector()) {
