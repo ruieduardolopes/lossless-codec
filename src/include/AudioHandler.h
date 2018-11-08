@@ -11,14 +11,19 @@ constexpr size_t FRAMES_BUFFER_SIZE = 65536;
 
 class AudioHandler {
     public:
+        AudioHandler();
         AudioHandler(const char * filename);
         AudioHandler(const char * filename, int blockLength);
         int loadAll();
         int loadBlock();
+        int getFormat();
+        int getChannels();
+        int getSamplerate();
         vector<char> getSamples_8();
         vector<short> getSamples_16();
         vector<int> getSamples_32();
         int save(std::string filename, vector<short>& samples, int numberOfFrames);
+        int save(std::string filename, vector<short>& samples, int numberOfFrames, int format, int channels, int samplerate);
     private:
         int loadAudioSpecs();
         int blockLength;

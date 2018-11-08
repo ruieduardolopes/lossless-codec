@@ -6,11 +6,17 @@ Golomb::Golomb(int m) {
     mValue = m;
 }
 
+
 int Golomb::generate_truncated_binary_code(int remaindr, bstream& file) {
+
     int bValue = ceil(extmath::lb(mValue));
-    int tValue = 2*bValue - mValue;
+    // file.writeNBits(remaindr, bValue);
+    // return remaindr;
+    // cout << "n is " << (remaindr < (2*bValue - mValue)) << endl;
+    int tValue = pow(2,bValue) - mValue; // 12 - 64 = -52
     if (remaindr < tValue) {
-        file.writeNBits(remaindr, bValue-1);
+        cout << remaindr << "...." << endl;
+        file.writeNBits(remaindr, bValue-1); // 0 em 5 bits
         return remaindr;
     } else {
         remaindr = remaindr + tValue;
@@ -46,21 +52,26 @@ int Golomb::encode(int n, bstream& file) {
     return 0;
 }
 
+// 0 0 000000
 int Golomb::decode(bstream& file) {
-    int valueSignal = file.readBit();
-    int bValue = (int)ceil(extmath::lb(mValue));
-    int tValue = 2*bValue - mValue;
-    int numberOfConsecutiveOnes = 0;
+    int valueSignal = file.readBit(); // 0
+    int bValue = (int)ceil(extmath::lb(mValue)); // 6
+    int tValue = pow(2,bValue) - mValue; // -52
+    int numberOfConsecutiveOnes = 0; // 0
     while (true) {
-        if (file.readBit() == 1) {
+        if (file.readBit() == 1) { // false
             numberOfConsecutiveOnes++;
         } else {
             break;
         }
     }
-    int nextInputBits = 0;
+    int nextInputBits = 0; // 0
+    // for (int i = 0; i < bValue; i++) {
+    //     nextInputBits = (nextInputBits << 1) | file.readBit(); // 000000 = 0
+    // }
+    // numberOfConsecutiveOnes = numberOfConsecutiveOnes * mValue + nextInputBits;
     for (int i = 0; i < bValue-1; i++) {
-        nextInputBits = (nextInputBits << i) | file.readBit();
+        nextInputBits = (nextInputBits << 1) | file.readBit(); // 00110 = 6
     }
     if (nextInputBits < tValue) {
         numberOfConsecutiveOnes = numberOfConsecutiveOnes * mValue + nextInputBits;

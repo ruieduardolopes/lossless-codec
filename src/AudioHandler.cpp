@@ -11,6 +11,8 @@ AudioHandler::AudioHandler(const char * filename, int blockLength) {
     this->blockLength = blockLength;
 }
 
+AudioHandler::AudioHandler() {}
+
 int AudioHandler::loadAudioSpecs() {
     channels = audio.channels();
     format = audio.format();
@@ -92,6 +94,18 @@ int AudioHandler::loadBlock() {
     return nFrames;
 }
 
+int AudioHandler::getFormat() {
+    return format;
+}
+
+int AudioHandler::getChannels() {
+    return channels;
+}
+
+int AudioHandler::getSamplerate() {
+    return samplerate;
+}
+
 vector<char> AudioHandler::getSamples_8() {
     if ((format & SF_FORMAT_SUBMASK) != SF_FORMAT_PCM_S8) {
         throw "Invalid format";
@@ -114,6 +128,20 @@ vector<int> AudioHandler::getSamples_32() {
 }
 
 int AudioHandler::save(std::string filename, vector<short>& samples, int numberOfFrames) {
+	if (samples.empty()) {																
+		return 1; 																								
+	} 																										
+    cout << "\nFile made with:" << endl;
+    cout << "Format: " << format << endl;
+    cout << "Channels: " << channels << endl;
+    cout << "Sample Rate: " << samplerate << endl;
+    cout << "Number of Frames: " << numberOfFrames << endl;
+	SndfileHandle file { filename, SFM_WRITE, format, channels, samplerate }; 
+    file.writef(samples.data(), numberOfFrames);		
+	return 0;																							
+}
+
+int AudioHandler::save(std::string filename, vector<short>& samples, int numberOfFrames, int format, int channels, int samplerate) {
 	if (samples.empty()) {																
 		return 1; 																								
 	} 																										

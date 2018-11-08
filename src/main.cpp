@@ -161,7 +161,36 @@ int estimateGolombMValue(vector<int> vec, int blockLength) {
         }
         kValue++;
     }
+    cout << "the chosen M was " << toReturn << endl;
     return toReturn;
+}
+
+int writeHeader(bstream& file, uint64_t size, uint64_t nFrames, AudioHandler& audio) {
+    for (int k = 63; k >= 0; k--) {
+        file.writeBit(size >> k);
+    }
+    for (int p = 63; p >= 0; p--) {
+        file.writeBit(nFrames >> p);
+    }
+    for (int i = 31; i >= 0; i--) {
+        file.writeBit(audio.getFormat() >> i);
+    }
+    for (int j = 31; j >= 0; j--) {
+        file.writeBit(audio.getSamplerate() >> j);
+    }
+    for (int m = 31; m >= 0; m--) {
+        file.writeBit(audio.getChannels() >> m);
+    }
+    return 0;
+}
+
+int readHeader(bstream& file, uint64_t *size, uint64_t *nFrames, int *format, int *samplerate, int *channels) {
+    *size = file.readNBits(64);
+    *nFrames = file.readNBits(64);
+    *format = file.readNBits(32);
+    *samplerate = file.readNBits(32);
+    *channels = file.readNBits(32);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -192,20 +221,35 @@ int main(int argc, char *argv[]) {
     residuals = predictor.getResiduals();
     cout << "length: " << residuals.size() << endl;
     bstream output = bstream{ "output.wavz", ios::out|ios::binary };
+
+    writeHeader(output, residuals.size(), nFrames, audio);
+
     Golomb golomb = Golomb(estimateGolombMValue(residuals, BLOCK_SIZE));
     int writtenSamples = 0;
-    cout << "before:" << endl;
-    for (auto sample : predictor.getUsedPredictorVector()) {
-        cout << (int)sample << ", ";
+    // cout << "before:" << endl;
+    // for (auto sample : predictor.getUsedPredictorVector()) {
+    //     cout << (int)sample << ", ";
+    // }
+    // cout << endl;
+
+    cout << "predictors:" << endl;
+    for (int i = 0; i != 500; i++) {
+        cout << (int)predictor.getUsedPredictorVector()[i] << ", ";
     }
     cout << endl;
 
-    cout << "BEFORE:" << endl;
-    for (int j = 88; j != 91; j++) {
-        for (int i = 0; i != 512; i++) {
-            cout << residuals[i+(j*BLOCK_SIZE)] << ", ";
-        }
-        cout << endl;
+    // cout << "BEFORE:" << endl;
+    // for (int j = 88; j != 91; j++) {
+    //     for (int i = 0; i != 512; i++) {
+    //         cout << residuals[i+(j*BLOCK_SIZE)] << ", ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl;
+
+    cout << "writing to file:" << endl;
+    for (int i = 0; i != 10000; i++) {
+        cout << residuals[i] << ", ";
     }
     cout << endl;
 
@@ -216,6 +260,22 @@ int main(int argc, char *argv[]) {
     cout << endl;
     golomb.endEncode(output);
 
+    // Golomb golomb = Golomb(64);
+    // AdvancedPredictor predictor = AdvancedPredictor();
+    // predictor.setFramesBufferSize(BLOCK_SIZE);
+    // vector<short> samples;
+
+
+
+
+
+
+
+
+
+
+
+
 
     bstream input = bstream{ "output.wavz", ios::in|ios::binary };
     vector<int> fromFile;
@@ -223,11 +283,14 @@ int main(int argc, char *argv[]) {
     int readSamples = 0;
     vector<char> predictorUsed;
 
+    uint64_t size, numberOfFrames;
+    int format, samplerate, channels;
+    readHeader(input, &size, &numberOfFrames, &format, &samplerate, &channels);
 
-
-    // cout << "read samples : " ;
+    cout << "read samples : " ;
+    // cout << "channels are " << channels << endl;
     cout << "AFTER:" << endl;
-    for (int i = 0; i != residuals.size(); i++) {
+    for (int i = 0; i != size; i++) {
         if (readSamples++ % BLOCK_SIZE == 0) {
             // cout << (readSamples-1) << ", ";
             predictorUsed.push_back(input.readNBits(2));
@@ -237,6 +300,18 @@ int main(int argc, char *argv[]) {
         // if (i < 1024) cout << fromFile.back() << ", ";
     }
     cout << endl;
+    cout << endl;
+
+    cout << "predictors:" << endl;
+    for (int i = 0; i != 500; i++) {
+        cout << (int)predictorUsed[i] << ", ";
+    }
+    cout << endl;
+
+    cout << "read from file:" << endl;
+    for (int i = 0; i != 10000; i++) {
+        cout << fromFile[i] << ", ";
+    }
     cout << endl;
 
     // for (int j = 88; j != 91; j++) {
@@ -256,9 +331,21 @@ int main(int argc, char *argv[]) {
     // }
     // cout << endl;
 
+    predictor.setResiduals(fromFile);
     predictor.revert();
-    samples = predictor.getRevertSamples();
-    audio.save("file.compressed.wav", samples, nFrames);
+    // cout << "size of int is " << sizeof(uint64_t) << endl;
+    samples = predictor.getRevertSamples(); 
+    // audio.save("file2.compressed.wav", samples, nFrames);
+    AudioHandler audio2 = AudioHandler();
+    audio2.save("file2.compressed.wav", samples, nFrames, audio.getFormat(), audio.getChannels(), audio.getSamplerate()); 
+    // cout << "Saved new file with ..." << endl;
+    // // cout << "samples : " << samples << endl;
+    // cout << "numberOfFrames : " << numberOfFrames << endl;
+    // cout << "format : " << format << endl;
+    // cout << "channels : " << channels << endl;
+    // cout << "samplerate : " << samplerate << endl;
     return 0;
 }
+
+
 
