@@ -1,4 +1,5 @@
 #include <vector>
+#include <boost/algorithm/string.hpp>
 
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
@@ -23,15 +24,16 @@ ostream& operator<<(ostream& os, const vector<T>& v)
 
 typedef vector<string> string_vector;
 
-int parse_arguments(int argc, char *argv[], bool *lossy, bool *decode, bool *quiet, string_vector& input_files) {
+int parse_arguments(int argc, char *argv[], int *lossyFactor, bool *decode, bool *dynamicMValue, bool *quiet, string_vector& input_files) {
 	try {
 		std::string appName = boost::filesystem::basename(argv[0]);
 		namespace po = boost::program_options;
 		po::options_description desc("Options");
 		desc.add_options()
 			("help,h", "Print this help message")
-			("lossy,l", "Encode file with lossy mechanism")
+			("lossy,l", po::value<int>(lossyFactor), "Encode file with lossy mechanism")
 			("decode,d", "Decode WAVz audio file")
+            ("m-static,m", "runs encoder/decoder function with a per block Golomb M value, with M=2^k")
             ("quiet,q", "Quiet mode")
 			("version,v", "See version");
         po::options_description hidden("Hidden options");
@@ -54,8 +56,10 @@ int parse_arguments(int argc, char *argv[], bool *lossy, bool *decode, bool *qui
 						  << "losslesscdc [option...] file \n\n" 
 						  << "  {-d | --decode}\n"
 						  << "    decode FILE, where FILE is a WAVz compressed file\n"
-						  << "  {-l | --lossy} \n"
-						  << "    encode FILE with lossy mechanism\n"
+						  << "  {-l | --lossy FACTOR} \n"
+						  << "    encode FILE with lossy mechanism by a factor of FACTOR bits\n"
+                          << "  {-s | --m-static} \n"
+						  << "    runs encoder/decoder function with a per block Golomb M value, with M=2^k\n"
 					      << "  {-h | --help} \n"
 						  << "    prints this help message\n"
 						  << "  {-v | --version} \n"
@@ -71,18 +75,30 @@ int parse_arguments(int argc, char *argv[], bool *lossy, bool *decode, bool *qui
 			}
             *decode = vm.count("decode");
             if (*decode) {
-                cout << "decode" << endl;
+                cout << "decode on" << endl;
+            } 
+            if (vm.count("lossy")) {
+                *lossyFactor = vm["lossy"].as<int>();
+                if (*decode) {
+                    cerr << "Argument \"lossy factor\" (-l | --lossy) has been ignored on decoding. Reading from file, instead" << endl;
+                }
+                cout << "lossyFactor of " << *lossyFactor << endl;
             }
-            *lossy = vm.count("lossy");
-            if (*lossy) {
-                cout << "lossy" << endl;
+            if (*lossyFactor < 0 || *lossyFactor > 15) {
+                std::cerr << "ERROR: " << "The quantization factor must be an integer from 0 to 15." << std::endl;
+                return 1; // TODO : handle this error
             }
+            *dynamicMValue = vm.count("m-static");
+            if (*decode) {
+                cout << "m-static on" << endl;
+            } 
             *quiet = vm.count("quiet");
-            if (*quiet) {
-                cout << "quiet" << endl;
-            }
+            if (*decode) {
+                cout << "quiet on" << endl;
+            } 
             if (vm.count("input-file")) {
                 input_files = vm["input-file"].as<string_vector>();
+                cout << "input-file is " << input_files << endl;
             }
             po::notify(vm);
 		} catch (boost::program_options::required_option& e) {
@@ -168,11 +184,10 @@ int estimateGolombMValue(vector<int> vec, int blockLength) {
 Golomb estimateAndWriteEncodedKGolomb(bstream& file, vector<int>* vec) {
     int m = estimateGolombMValue(*vec, BLOCK_SIZE);
     file.writeNBits(log2(m), 4);
-    cout << "Deciding..."<< endl;
     return Golomb(m);
 }
 
-int writeHeader(bstream& file, uint64_t size, uint64_t nFrames, AudioHandler& audio) {
+int writeHeader(bstream& file, uint64_t size, uint64_t nFrames, AudioHandler& audio, int lossyFactor) {
     for (int k = 63; k >= 0; k--) {
         file.writeBit(size >> k);
     }
@@ -188,192 +203,111 @@ int writeHeader(bstream& file, uint64_t size, uint64_t nFrames, AudioHandler& au
     for (int m = 31; m >= 0; m--) {
         file.writeBit(audio.getChannels() >> m);
     }
+    if (lossyFactor != 0) {
+        for (int m = 3; m >= 0; m--) {
+            file.writeBit(lossyFactor >> m);
+        }
+    }
     return 0;
 }
 
-int readHeader(bstream& file, uint64_t *size, uint64_t *nFrames, int *format, int *samplerate, int *channels) {
+int readHeader(bstream& file, uint64_t *size, uint64_t *nFrames, int *format, int *samplerate, int *channels, int* lossyFactor, bool isLossy) {
     *size = file.readNBits(64);
     *nFrames = file.readNBits(64);
     *format = file.readNBits(32);
     *samplerate = file.readNBits(32);
     *channels = file.readNBits(32);
+    if (isLossy) {
+        *lossyFactor = file.readNBits(4);
+    }
     return 0;
 }
 
 int main(int argc, char *argv[]) {
-    bool lossy, decode, quiet;
+    bool dynamicMValue, decode, quiet;
+    int lossyFactor = 0;
     vector<string> input_files;
-    parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
-    AudioHandler audio = AudioHandler("Pink Floyd - Pigs on the Wing, Part 1.wav", 1);
-    AdvancedPredictor predictor = AdvancedPredictor();
-    vector<short> samples;
-    predictor.setFramesBufferSize(BLOCK_SIZE);
-    int nFrames = 0;
-    vector<short> original;
-    vector<int> residuals;
-    while (true) {
-        int frames;
-        if ((frames = audio.loadBlock()) == -2) {
-            break;
+    int errorCode = parse_arguments(argc, argv, &lossyFactor, &decode, &dynamicMValue, &quiet, input_files);
+    if (errorCode == 3) {
+        exit(0);
+    }
+
+    vector<string> filename;
+    boost::split(filename, input_files[0], [](char c){return c == '.';});
+    if (decode == false) {
+        if (filename.back().compare("wav") != 0) {
+            cerr << "Wrong input file." << endl;
+            return 1; // TODO : handle this error
         }
-        samples = audio.getSamples_16();
-        original.insert(original.end(), samples.begin(), samples.end());
-        nFrames += frames;
-        for (int i = 0; i != (int)(samples.size()/BLOCK_SIZE); i++) {
-            vector<short> block = vector<short>(samples.begin()+(BLOCK_SIZE*i), samples.begin()+(BLOCK_SIZE*(i+1)));
-            predictor.setSamples(block);
-            predictor.predict();
+        AudioHandler audio = AudioHandler(input_files[0].data(), 1);
+        AdvancedPredictor predictor = AdvancedPredictor(lossyFactor);
+        vector<short> samples;
+        predictor.setFramesBufferSize(BLOCK_SIZE);
+        int nFrames = 0;
+        vector<short> original;
+        vector<int> residuals;
+        while (true) {
+            int frames;
+            if ((frames = audio.loadBlock()) == -2) {
+                break;
+            }
+            samples = audio.getSamples_16();
+            original.insert(original.end(), samples.begin(), samples.end());
+            nFrames += frames;
+            for (int i = 0; i != (int)(samples.size()/BLOCK_SIZE); i++) {
+                vector<short> block = vector<short>(samples.begin()+(BLOCK_SIZE*i), samples.begin()+(BLOCK_SIZE*(i+1)));
+                predictor.setSamples(block);
+                predictor.predict();
+            }
         }
-    }
-    residuals = predictor.getResiduals();
-    cout << "length: " << residuals.size() << endl;
-    bstream output = bstream{ "output.wavz", ios::out|ios::binary };
+        residuals = predictor.getResiduals();
 
-    writeHeader(output, residuals.size(), nFrames, audio);
+        bstream output = bstream{ lossyFactor == 0 ? string(filename[0]+".wavz").data() : string(filename[0]+".wavqz").data() , ios::out|ios::binary };
 
-    Golomb golomb = Golomb(estimateGolombMValue(residuals, BLOCK_SIZE));
-    int writtenSamples = 0;
-    // cout << "before:" << endl;
-    // for (auto sample : predictor.getUsedPredictorVector()) {
-    //     cout << (int)sample << ", ";
-    // }
-    // cout << endl;
+        writeHeader(output, residuals.size(), nFrames, audio, lossyFactor);
 
-    cout << "predictors:" << endl;
-    for (int i = 0; i != 500; i++) {
-        cout << (int)predictor.getUsedPredictorVector()[i] << ", ";
-    }
-    cout << endl;
-
-    // cout << "BEFORE:" << endl;
-    // for (int j = 88; j != 91; j++) {
-    //     for (int i = 0; i != 512; i++) {
-    //         cout << residuals[i+(j*BLOCK_SIZE)] << ", ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << endl;
-
-    cout << "writing to file:" << endl;
-    for (int i = 0; i != 10000; i++) {
-        cout << residuals[i] << ", ";
-    }
-    cout << endl;
-
-    vector<int> ks;
-
-    for (int i = 0; i != residuals.size(); i++) {
-        if (writtenSamples++ % BLOCK_SIZE == 0) {
-            writeEncodedPredictorIndex(writtenSamples-1, output, predictor);
-            vector<int> block;
-            block.insert(block.begin(), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE+BLOCK_SIZE));
-            golomb = estimateAndWriteEncodedKGolomb(output, &block);
-            ks.push_back(golomb.mValue);
+        Golomb golomb = Golomb(estimateGolombMValue(residuals, BLOCK_SIZE)); // To perform globl
+        int writtenSamples = 0;
+        for (int i = 0; i != residuals.size(); i++) {
+            if (writtenSamples++ % BLOCK_SIZE == 0) {
+                writeEncodedPredictorIndex(writtenSamples-1, output, predictor);
+                vector<int> block;
+                block.insert(block.begin(), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE+BLOCK_SIZE));
+                golomb = estimateAndWriteEncodedKGolomb(output, &block);
+            }
+            golomb.encode(residuals[i], output);
         }
-        golomb.encode(residuals[i], output);
-    }
-    cout << endl;
-    golomb.endEncode(output);
-
-    cout << "First K's:" << endl;
-    for (auto element : ks) {
-        cout << element << ", ";
-    }
-    cout << endl;
-
-    // Golomb golomb = Golomb(64);
-    // AdvancedPredictor predictor = AdvancedPredictor();
-    // predictor.setFramesBufferSize(BLOCK_SIZE);
-    // vector<short> samples;
-
-
-
-
-
-
-
-
-
-
-
-
-
-    bstream input = bstream{ "output.wavz", ios::in|ios::binary };
-    vector<int> fromFile;
-    cout << "DECODED:" << endl;
-    int readSamples = 0;
-    vector<char> predictorUsed;
-
-    uint64_t size, numberOfFrames;
-    int format, samplerate, channels;
-    readHeader(input, &size, &numberOfFrames, &format, &samplerate, &channels);
-
-    vector<int> kss;
-
-    cout << "read samples : " ;
-    // cout << "channels are " << channels << endl;
-    cout << "AFTER:" << endl;
-    for (int i = 0; i != size; i++) {
-        if (readSamples++ % BLOCK_SIZE == 0) {
-            // cout << (readSamples-1) << ", ";
-            predictorUsed.push_back(input.readNBits(2));
-            golomb = Golomb(pow(2,input.readNBits(4)));
-            kss.push_back(golomb.mValue);
-            // if (i < 1024) cout << "P: " << (int)predictorUsed.back() << ", ";
+        golomb.endEncode(output);
+    } else {
+        if (filename.back().compare("wavz") != 0 && filename.back().compare("wavqz") != 0) {
+            cerr << "Wrong input file." << endl;
+            return 1; // TODO : handle this error
         }
-        fromFile.push_back(golomb.decode(input));
-        // if (i < 1024) cout << fromFile.back() << ", ";
+        Golomb golomb = Golomb(2);
+        bstream input = bstream{ input_files[0].data() , ios::in|ios::binary };
+        vector<int> fromFile;
+        int readSamples = 0;
+        vector<char> predictorUsed;
+        uint64_t size, numberOfFrames;
+        int format, samplerate, channels, lossyFactor = 0;
+        readHeader(input, &size, &numberOfFrames, &format, &samplerate, &channels, &lossyFactor, filename[1].compare("wavqz") == 0);
+        AdvancedPredictor predictor = AdvancedPredictor(lossyFactor);
+        predictor.setFramesBufferSize(BLOCK_SIZE);
+        string finalName = filename[0];
+        for (int i = 0; i != size; i++) {
+            if (readSamples++ % BLOCK_SIZE == 0) {
+                predictorUsed.push_back(input.readNBits(2));
+                golomb = Golomb(pow(2,input.readNBits(4)));
+            }
+            fromFile.push_back(golomb.decode(input));
+        }
+        predictor.setUsedPredictor(predictorUsed);
+        predictor.setResiduals(fromFile);
+        predictor.revert();
+        vector<short> samples = predictor.getRevertSamples(); 
+        AudioHandler audio2 = AudioHandler();
+        audio2.save(string(filename[0]+".recovered.wav"), samples, numberOfFrames, format, channels, samplerate); 
     }
-    cout << endl;
-
-    cout << "Second K's:" << endl;
-    for (auto element : kss) {
-        cout << element << ", ";
-    }
-    cout << endl;
-
-    cout << "predictors:" << endl;
-    for (int i = 0; i != 500; i++) {
-        cout << (int)predictorUsed[i] << ", ";
-    }
-    cout << endl;
-
-    cout << "read from file:" << endl;
-    for (int i = 0; i != 10000; i++) {
-        cout << fromFile[i] << ", ";
-    }
-    cout << endl;
-
-    // for (int j = 88; j != 91; j++) {
-    //     for (int i = 0; i != 512; i++) {
-    //         cout << fromFile[i+(j*BLOCK_SIZE)] << ", ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << endl;
-
-    cout << "length: " << fromFile.size() << endl;
-    predictor.setUsedPredictor(predictorUsed);
-
-    // cout << "after:" << endl;
-    // for (auto sample : predictor.getUsedPredictorVector()) {
-    //     cout << (int)sample << ", ";
-    // }
-    // cout << endl;
-
-    predictor.setResiduals(fromFile);
-    predictor.revert();
-    // cout << "size of int is " << sizeof(uint64_t) << endl;
-    samples = predictor.getRevertSamples(); 
-    // audio.save("file2.compressed.wav", samples, nFrames);
-    AudioHandler audio2 = AudioHandler();
-    audio2.save("file2.compressed.wav", samples, nFrames, audio.getFormat(), audio.getChannels(), audio.getSamplerate()); 
-    // cout << "Saved new file with ..." << endl;
-    // // cout << "samples : " << samples << endl;
-    // cout << "numberOfFrames : " << numberOfFrames << endl;
-    // cout << "format : " << format << endl;
-    // cout << "channels : " << channels << endl;
-    // cout << "samplerate : " << samplerate << endl;
     return 0;
 }
 

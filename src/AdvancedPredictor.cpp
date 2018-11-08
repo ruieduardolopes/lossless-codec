@@ -2,10 +2,14 @@
 
 #include <iostream>
 
-int QUANTIZER_FACTOR = 9;
+int QUANTIZER_FACTOR = 0;
 bool alreadyPrinted = false;
 bool alreadyPrinted2 = false;
 int LEVEL = 10;
+
+AdvancedPredictor::AdvancedPredictor(int quantizeFactor) {
+    QUANTIZER_FACTOR = quantizeFactor;
+}
 
 int AdvancedPredictor::predict() {
     resetVectors();
@@ -13,13 +17,6 @@ int AdvancedPredictor::predict() {
     
     // Fill results from predictors
     vector<short> samples2 = originalAudioSamples;
-    if (!alreadyPrinted) {
-        cout << "Original Samples" << endl;
-        for (int i = 0; i != LEVEL; i++) {
-            cout << samples2[i] << ", ";
-        }
-        cout << endl;
-    }
     vector<int> samples = Quantizer::quantize(originalAudioSamples, QUANTIZER_FACTOR);
     samples.insert(samples.begin(), lastThreeSamples.begin(), lastThreeSamples.end());
     int lastResidual1;
@@ -74,19 +71,6 @@ int AdvancedPredictor::predict() {
         default:
             break; // TODO : handle this case
     }
-    if (!alreadyPrinted) {
-        cout << "Residuals 0" << endl;
-        for (int i = 0; i != LEVEL; i++) {
-            cout << deviationPredictor1[i] << ", ";
-        }
-        cout << endl;
-        cout << "Residuals 1" << endl;
-        for (int i = 0; i != LEVEL; i++) {
-            cout << deviationPredictor2[i] << ", ";
-        }
-        cout << endl;
-    }
-    alreadyPrinted = true;
 
     return 0;
 }
@@ -121,13 +105,6 @@ int AdvancedPredictor::revert() {
     }
     revertedAudioSamples.erase(revertedAudioSamples.begin(), revertedAudioSamples.begin()+3);
     finalSamples = Quantizer::dequantize(revertedAudioSamples, QUANTIZER_FACTOR);
-    if (!alreadyPrinted2) {
-        cout << "Reverted Samples" << endl;
-        for (int i = 0; i != LEVEL; i++) {
-            cout << finalSamples[i] << ", ";
-        }
-    }
-    // alreadyPrinted = true;
     return 0;
 }
 

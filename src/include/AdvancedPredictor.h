@@ -11,6 +11,7 @@ using namespace std;
 
 class AdvancedPredictor : public Predictor {
     public:
+        AdvancedPredictor(int quantizeFactor);
         int predict();
         int revert();
         vector<char> getUsedPredictorVector();
