@@ -16,10 +16,10 @@ class Golomb {
         int encode(int value, bstream& file);
         int decode(bstream& file);
         int endEncode(bstream& file);
+        int mValue;
     private:
         int generate_unary_code(int quotient, bstream& file);
         int generate_truncated_binary_code(int remaindr, bstream& file);
-        int mValue;
 };
 
 #endif

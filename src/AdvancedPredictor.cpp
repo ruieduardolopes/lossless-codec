@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-int QUANTIZER_FACTOR = 7;
+int QUANTIZER_FACTOR = 9;
 bool alreadyPrinted = false;
 bool alreadyPrinted2 = false;
 int LEVEL = 10;

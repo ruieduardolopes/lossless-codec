@@ -100,30 +100,27 @@ int parse_arguments(int argc, char *argv[], bool *lossy, bool *decode, bool *qui
 	return 0;
 }
 
-int writeEncodedPredictorIndex(int writtenSamples, bstream& file, AdvancedPredictor& predictor) {
-    if (writtenSamples % BLOCK_SIZE == 0) {
-        switch (predictor.getUsedPredictorOn(writtenSamples/BLOCK_SIZE)) {
-            case 0: 
-                file.writeBit(0);
-                file.writeBit(0);
-                break;
-            case 1:
-                file.writeBit(0);
-                file.writeBit(1);
-                break;
-            case 2: 
-                file.writeBit(1);
-                file.writeBit(0);
-                break;
-            case 3:
-                file.writeBit(1);
-                file.writeBit(1);
-                break;
-            default:
-                break;
-        }
+void writeEncodedPredictorIndex(int writtenSamples, bstream& file, AdvancedPredictor& predictor) {
+    switch (predictor.getUsedPredictorOn(writtenSamples/BLOCK_SIZE)) {
+        case 0: 
+            file.writeBit(0);
+            file.writeBit(0);
+            break;
+        case 1:
+            file.writeBit(0);
+            file.writeBit(1);
+            break;
+        case 2: 
+            file.writeBit(1);
+            file.writeBit(0);
+            break;
+        case 3:
+            file.writeBit(1);
+            file.writeBit(1);
+            break;
+        default:
+            break;
     }
-    return writtenSamples + 1;
 }
 
 int estimateGolombMValue(vector<int> vec, int blockLength) {
@@ -160,9 +157,19 @@ int estimateGolombMValue(vector<int> vec, int blockLength) {
             }
         }
         kValue++;
+        if (kValue > 15) {
+            break;
+        }
     }
     cout << "the chosen M was " << toReturn << endl;
     return toReturn;
+}
+
+Golomb estimateAndWriteEncodedKGolomb(bstream& file, vector<int>* vec) {
+    int m = estimateGolombMValue(*vec, BLOCK_SIZE);
+    file.writeNBits(log2(m), 4);
+    cout << "Deciding..."<< endl;
+    return Golomb(m);
 }
 
 int writeHeader(bstream& file, uint64_t size, uint64_t nFrames, AudioHandler& audio) {
@@ -197,7 +204,7 @@ int main(int argc, char *argv[]) {
     bool lossy, decode, quiet;
     vector<string> input_files;
     parse_arguments(argc, argv, &lossy, &decode, &quiet, input_files);
-    AudioHandler audio = AudioHandler("sample07.wav", 1);
+    AudioHandler audio = AudioHandler("Pink Floyd - Pigs on the Wing, Part 1.wav", 1);
     AdvancedPredictor predictor = AdvancedPredictor();
     vector<short> samples;
     predictor.setFramesBufferSize(BLOCK_SIZE);
@@ -253,12 +260,26 @@ int main(int argc, char *argv[]) {
     }
     cout << endl;
 
-    for (auto residual : residuals) {
-        writtenSamples = writeEncodedPredictorIndex(writtenSamples, output, predictor);
-        golomb.encode(residual, output);
+    vector<int> ks;
+
+    for (int i = 0; i != residuals.size(); i++) {
+        if (writtenSamples++ % BLOCK_SIZE == 0) {
+            writeEncodedPredictorIndex(writtenSamples-1, output, predictor);
+            vector<int> block;
+            block.insert(block.begin(), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE+BLOCK_SIZE));
+            golomb = estimateAndWriteEncodedKGolomb(output, &block);
+            ks.push_back(golomb.mValue);
+        }
+        golomb.encode(residuals[i], output);
     }
     cout << endl;
     golomb.endEncode(output);
+
+    cout << "First K's:" << endl;
+    for (auto element : ks) {
+        cout << element << ", ";
+    }
+    cout << endl;
 
     // Golomb golomb = Golomb(64);
     // AdvancedPredictor predictor = AdvancedPredictor();
@@ -287,6 +308,8 @@ int main(int argc, char *argv[]) {
     int format, samplerate, channels;
     readHeader(input, &size, &numberOfFrames, &format, &samplerate, &channels);
 
+    vector<int> kss;
+
     cout << "read samples : " ;
     // cout << "channels are " << channels << endl;
     cout << "AFTER:" << endl;
@@ -294,12 +317,19 @@ int main(int argc, char *argv[]) {
         if (readSamples++ % BLOCK_SIZE == 0) {
             // cout << (readSamples-1) << ", ";
             predictorUsed.push_back(input.readNBits(2));
+            golomb = Golomb(pow(2,input.readNBits(4)));
+            kss.push_back(golomb.mValue);
             // if (i < 1024) cout << "P: " << (int)predictorUsed.back() << ", ";
         }
         fromFile.push_back(golomb.decode(input));
         // if (i < 1024) cout << fromFile.back() << ", ";
     }
     cout << endl;
+
+    cout << "Second K's:" << endl;
+    for (auto element : kss) {
+        cout << element << ", ";
+    }
     cout << endl;
 
     cout << "predictors:" << endl;
