@@ -10,7 +10,7 @@
 
 using namespace std;
 
-constexpr int BLOCK_SIZE = 512;
+constexpr int BLOCK_SIZE = 256;
 constexpr int PREDICTOR_OVERHEAD = 2;
 constexpr int GOLOMB_OVERHEAD = 0;
 string VERSION = "1.0.0";
@@ -33,7 +33,7 @@ int parse_arguments(int argc, char *argv[], int *lossyFactor, bool *decode, bool
 			("help,h", "Print this help message")
 			("lossy,l", po::value<int>(lossyFactor), "Encode file with lossy mechanism")
 			("decode,d", "Decode WAVz audio file")
-            ("m-static,m", "runs encoder/decoder function with a per block Golomb M value, with M=2^k")
+            ("m-static,s", "runs encoder/decoder function with a per block Golomb M value, with M=2^k")
             ("quiet,q", "Quiet mode")
 			("version,v", "See version");
         po::options_description hidden("Hidden options");
@@ -88,7 +88,7 @@ int parse_arguments(int argc, char *argv[], int *lossyFactor, bool *decode, bool
                 std::cerr << "ERROR: " << "The quantization factor must be an integer from 0 to 15." << std::endl;
                 return 1; // TODO : handle this error
             }
-            *dynamicMValue = vm.count("m-static");
+            *dynamicMValue = !vm.count("m-static");
             if (*decode) {
                 cout << "m-static on" << endl;
             } 
@@ -177,7 +177,6 @@ int estimateGolombMValue(vector<int> vec, int blockLength) {
             break;
         }
     }
-    cout << "the chosen M was " << toReturn << endl;
     return toReturn;
 }
 
@@ -224,7 +223,7 @@ int readHeader(bstream& file, uint64_t *size, uint64_t *nFrames, int *format, in
 }
 
 int main(int argc, char *argv[]) {
-    bool dynamicMValue, decode, quiet;
+    bool dynamicMValue = 1, decode, quiet;
     int lossyFactor = 0;
     vector<string> input_files;
     int errorCode = parse_arguments(argc, argv, &lossyFactor, &decode, &dynamicMValue, &quiet, input_files);
@@ -271,9 +270,11 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i != residuals.size(); i++) {
             if (writtenSamples++ % BLOCK_SIZE == 0) {
                 writeEncodedPredictorIndex(writtenSamples-1, output, predictor);
-                vector<int> block;
-                block.insert(block.begin(), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE+BLOCK_SIZE));
-                golomb = estimateAndWriteEncodedKGolomb(output, &block);
+                if (dynamicMValue) {
+                    vector<int> block;
+                    block.insert(block.begin(), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE), residuals.begin()+((writtenSamples/BLOCK_SIZE)*BLOCK_SIZE+BLOCK_SIZE));
+                    golomb = estimateAndWriteEncodedKGolomb(output, &block);
+                }
             }
             golomb.encode(residuals[i], output);
         }
@@ -297,7 +298,9 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i != size; i++) {
             if (readSamples++ % BLOCK_SIZE == 0) {
                 predictorUsed.push_back(input.readNBits(2));
-                golomb = Golomb(pow(2,input.readNBits(4)));
+                if (dynamicMValue) {
+                    golomb = Golomb(pow(2,input.readNBits(4)));
+                }
             }
             fromFile.push_back(golomb.decode(input));
         }
