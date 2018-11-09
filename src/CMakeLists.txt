@@ -12,8 +12,13 @@ ELSE ()			# if the kernel is not Darwin's
 ENDIF ()
 
 ### Specification of build flags, according to the chosen build type
-SET (CMAKE_CXX_FLAGS_RELEASE "-O3")
-SET (CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address")
+IF(${CMAKE_CXX_FLAGS_DEBUG})
+    #ENVIRONMENT (LD_PRELOAD=/usr/lib64/libasan.so)
+    #SET (CMAKE_CXX_FLAGS_DEBUG "-g3")
+    SET (CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address ")
+ELSE()
+    SET (CMAKE_CXX_FLAGS_RELEASE "-O3")
+ENDIF ()
 
 ### Specification of BASE_DIR variable
 SET (BASE_DIR ${CMAKE_SOURCE_DIR} )
@@ -22,13 +27,37 @@ SET (BASE_DIR ${CMAKE_SOURCE_DIR} )
 SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BASE_DIR}/../bin)
 
 ### Setting multiple directories with project's inclusions, such as include and lib directories
-INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/)
+INCLUDE_DIRECTORIES(${BASE_DIR}/../lib/ ${BASE_DIR}/include/ ${BASE_DIR}/exception/ ${BASE_DIR})
+
+### Add a new and own-made library (bstream)
+ADD_LIBRARY(bstream  ${BASE_DIR}/../lib/bstream.cpp)
+
+### Add a new and own-made library (extmath)
+ADD_LIBRARY(extmath  ${BASE_DIR}/../lib/extmath.cpp)
 
 ### Add a new and own-made library (wavdec)
-#ADD_LIBRARY(wavdec  ${BASE_DIR}/wavdec.cpp)
+ADD_LIBRARY(golomb  ${BASE_DIR}/Golomb.cpp)
 
-### Marking wavvq.cpp final binary as wavvq
-#add_executable (wavvq wavvq.cpp)
+### Targeting libraries to further link with losslesscodec executable
+target_link_libraries (golomb bstream extmath)
 
-### Targeting libraries to further link with wavquant executable
-#target_link_libraries (wavvq sndfile bstream bitmath utils wavquant wavcb wavenc wavdec boost_program_options boost_filesystem boost_iostreams boost_system)
+### Add a new and own-made library (wavdec)
+ADD_LIBRARY(quantizer  ${BASE_DIR}/Quantizer.cpp)
+
+### Add a new and own-made library (wavdec)
+ADD_LIBRARY(audiohandler  ${BASE_DIR}/AudioHandler.cpp)
+
+### Add a new and own-made library (wavdec)
+ADD_LIBRARY(naivepredictor  ${BASE_DIR}/NaivePredictor.cpp)
+
+### Add a new and own-made library (wavdec)
+ADD_LIBRARY(advancedpredictor  ${BASE_DIR}/AdvancedPredictor.cpp)
+
+### Targeting libraries to further link with losslesscodec executable
+target_link_libraries (advancedpredictor quantizer)
+
+### Marking main.cpp final binary as losslesscodec
+add_executable (losslesscodec main.cpp)
+
+### Targeting libraries to further link with losslesscodec executable
+target_link_libraries (losslesscodec sndfile bstream extmath golomb audiohandler naivepredictor quantizer advancedpredictor boost_program_options boost_filesystem boost_iostreams boost_system)

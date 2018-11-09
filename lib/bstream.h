@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
+#include <bitset>
 
 using std::fstream;
 
@@ -12,9 +12,9 @@ class bstream : public fstream {
         bstream(const char *fname, ios_base::openmode mode) : fstream(fname, mode) {  };
         ~bstream();
         int writeBit(uint8_t value);
-        int writeNBits(uint8_t value, int num);
+        int writeNBits(uint32_t value, int num);
         uint8_t readBit();
-        uint8_t readNBits(int num);
+        uint32_t readNBits(int num);
         int grantWrite();
         void resetBitPointers(bool readOperation) {
             if (!readOperation) {
@@ -24,8 +24,9 @@ class bstream : public fstream {
         }
     private:
         uint8_t bits = 0;
-        uint8_t position = 7;
+        int position = 7;
         int byteCount;
+        bool readWasNotUsed = true;
 };
 
 #endif  
