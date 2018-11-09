@@ -22,6 +22,9 @@ class AudioHandler {
         vector<char> getSamples_8();
         vector<short> getSamples_16();
         vector<int> getSamples_32();
+        int getChannels();
+        int getFormat();
+        int getSamplerate();
         int save(std::string filename, vector<short>& samples, int numberOfFrames);
         int save(std::string filename, vector<short>& samples, int numberOfFrames, int format, int channels, int samplerate);
     private:

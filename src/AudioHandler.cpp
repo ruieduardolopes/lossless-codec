@@ -153,4 +153,17 @@ int AudioHandler::save(std::string filename, vector<short>& samples, int numberO
 	SndfileHandle file { filename, SFM_WRITE, format, channels, samplerate }; 
     file.writef(samples.data(), numberOfFrames);		
 	return 0;																							
+
+}
+
+int AudioHandler::getChannels() {
+    return channels;
+}
+
+int AudioHandler::getFormat() {
+    return format;
+}
+
+int AudioHandler::getSamplerate() {
+    return samplerate;
 }
